@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Florai Demo</title>
+  <style>
+    :root {
+      --surface: #fffdf8;
+      --ink: #203329;
+      --muted: #66756b;
+      --line: #dce8df;
+      --green: #9fd9b5;
+      --green-strong: #347b54;
+      --pink: #f3a6a6;
+      --pink-soft: #fff0ee;
+      --shadow: 0 18px 45px rgba(31, 48, 41, .12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, "Malgun Gothic", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(159, 217, 181, .22), transparent 28rem),
+        linear-gradient(180deg, #fffdf8 0%, #f8fbf4 100%);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 1px solid rgba(221, 232, 223, .8);
+      background: rgba(255, 253, 248, .88);
+      backdrop-filter: blur(12px);
+    }
+
+    .shell {
+      width: min(100%, 980px);
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    .topbar {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 900;
+    }
+
+    .mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--green);
+      color: var(--green-strong);
+      font-weight: 900;
+    }
+
+    main { min-height: calc(100svh - 64px); }
+    section { display: none; min-height: calc(100svh - 64px); padding: 28px 16px; }
+    section.active { display: block; }
+
+    .hero {
+      display: grid;
+      gap: 28px;
+      align-items: center;
+    }
+
+    @media (min-width: 760px) {
+      .hero { grid-template-columns: 1fr .9fr; padding-top: 56px; }
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(36px, 11vw, 68px);
+      line-height: 1;
+    }
+
+    h2 {
+      margin: 8px 0 0;
+      font-size: 26px;
+      line-height: 1.25;
+    }
+
+    p { color: var(--muted); line-height: 1.7; }
+    .eyebrow { color: var(--green-strong); font-weight: 900; margin: 0 0 8px; }
+
+    .hero-card, .card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: white;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-visual {
+      min-height: 340px;
+      background:
+        linear-gradient(135deg, rgba(52, 123, 84, .12), rgba(244, 166, 166, .18)),
+        url("public/florai-hero.png") center/cover;
+      position: relative;
+    }
+
+    .hero-note {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      padding: 14px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .88);
+      backdrop-filter: blur(10px);
+      font-weight: 900;
+    }
+
+    .actions {
+      display: grid;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    @media (min-width: 520px) {
+      .actions { grid-template-columns: 1fr 1fr; max-width: 440px; }
+    }
+
+    button {
+      min-height: 54px;
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 20px;
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .primary { background: var(--green-strong); color: white; box-shadow: var(--shadow); }
+    .secondary { border: 1px solid var(--line); background: white; color: var(--ink); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+
+    .camera-box {
+      position: relative;
+      min-height: 440px;
+      overflow: hidden;
+      border-radius: 10px;
+      background: #13251e;
+      box-shadow: var(--shadow);
+    }
+
+    video, .preview {
+      width: 100%;
+      height: 440px;
+      object-fit: cover;
+      display: block;
+      background: #13251e;
+    }
+
+    .guide {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      padding: 32px;
+    }
+
+    .guide-box {
+      width: min(72%, 330px);
+      aspect-ratio: 4 / 5;
+      border: 4px dashed rgba(255, 255, 255, .84);
+      border-radius: 10px;
+      box-shadow: 0 0 0 999px rgba(0, 0, 0, .18);
+    }
+
+    .camera-copy {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 22px;
+      color: white;
+      background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .72));
+    }
+
+    .camera-copy strong { display: block; margin-bottom: 4px; }
+    .camera-copy span { opacity: .86; font-size: 14px; }
+
+    .form-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    @media (min-width: 760px) {
+      .form-grid { grid-template-columns: .8fr 1.2fr; }
+    }
+
+    .form-panel { padding: 18px; }
+    label { display: grid; gap: 8px; font-weight: 900; font-size: 14px; }
+    input, select, textarea {
+      min-height: 48px;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font: inherit;
+      background: white;
+    }
+
+    textarea { min-height: 96px; resize: vertical; }
+    .fields { display: grid; gap: 14px; }
+    .two { display: grid; gap: 14px; }
+    @media (min-width: 520px) { .two { grid-template-columns: 1fr 1fr; } }
+
+    .bottom-actions {
+      position: sticky;
+      bottom: 0;
+      display: grid;
+      gap: 12px;
+      margin: 20px -16px -28px;
+      padding: 24px 16px max(16px, env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, rgba(255,253,248,0), var(--surface) 24%);
+    }
+
+    @media (min-width: 520px) {
+      .bottom-actions { grid-template-columns: 1fr 1fr; }
+    }
+
+    .camera-actions {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @media (min-width: 760px) {
+      .camera-actions {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .spinner-card {
+      min-height: calc(100svh - 120px);
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .petal {
+      width: 76px;
+      height: 76px;
+      position: relative;
+      margin: 0 auto 22px;
+      animation: spin 2.4s linear infinite;
+    }
+
+    .petal span {
+      position: absolute;
+      left: 30px;
+      top: 8px;
+      width: 18px;
+      height: 32px;
+      border-radius: 999px 999px 6px 6px;
+      background: var(--pink);
+      transform-origin: 8px 30px;
+      opacity: .75;
+    }
+    .petal span:nth-child(2) { transform: rotate(72deg); background: var(--green); }
+    .petal span:nth-child(3) { transform: rotate(144deg); }
+    .petal span:nth-child(4) { transform: rotate(216deg); background: var(--green); }
+    .petal span:nth-child(5) { transform: rotate(288deg); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .report {
+      display: grid;
+      gap: 16px;
+    }
+
+    @media (min-width: 760px) {
+      .report { grid-template-columns: .85fr 1.15fr; }
+    }
+
+    .grade {
+      padding: 24px;
+      background: linear-gradient(135deg, #e7f7ed, #fff7f2);
+    }
+
+    .grade b {
+      display: block;
+      font-size: 72px;
+      line-height: .9;
+      color: var(--green-strong);
+    }
+
+    .report-section {
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+
+    .report-section h3 { margin: 0 0 10px; }
+    ul { margin: 0; padding-left: 20px; color: var(--muted); line-height: 1.8; }
+    .notice { margin-top: 16px; padding: 14px; border-radius: 10px; background: white; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell topbar">
+      <div class="brand"><span class="mark">F</span><span>Florai<br><small>AI 화훼 품질 관리</small></span></div>
+      <strong style="color:#a44e4e;background:var(--pink-soft);padding:6px 12px;border-radius:999px;">MVP</strong>
+    </div>
+  </header>
+
+  <main>
+    <section id="landing" class="shell hero active">
+      <div>
+        <p class="eyebrow">Flora + AI</p>
+        <h1>Florai</h1>
+        <h2>AI로 꽃의 가치를 더 정확하게.</h2>
+        <p>꽃 사진과 기본 정보를 입력하면 AI가 화훼류의 상태와 품질을 분석해드립니다.</p>
+        <div class="actions">
+          <button class="primary" onclick="go('camera')">꽃 분석 시작하기</button>
+          <button class="secondary" disabled>이전 결과 보기</button>
+        </div>
+      </div>
+      <div class="hero-card hero-visual">
+        <div class="hero-note">품질 리포트 준비<br><small>사진 촬영부터 등급 판별까지 한 흐름으로</small></div>
+      </div>
+    </section>
+
+    <section id="camera" class="shell">
+      <p class="eyebrow">꽃 사진 촬영</p>
+      <h2>꽃이 잘 보이도록 맞춰주세요</h2>
+      <div class="camera-box">
+        <video id="video" autoplay playsinline muted></video>
+        <img id="preview" class="preview" alt="촬영된 꽃 미리보기" style="display:none" />
+        <div class="guide"><div class="guide-box"></div></div>
+        <div class="camera-copy">
+          <strong>꽃이 점선 박스 안에 들어오도록 촬영해주세요.</strong>
+          <span>정면에서 촬영하면 더 정확한 분석이 가능합니다.</span>
+        </div>
+      </div>
+      <input id="fileInput" type="file" accept="image/*" capture="environment" hidden />
+      <div class="bottom-actions camera-actions">
+        <button class="secondary" onclick="go('landing')">이전으로</button>
+        <button class="secondary" id="uploadBtn">사진 업로드</button>
+        <button class="primary" id="captureBtn">촬영하기</button>
+        <button class="primary" id="skipPhotoBtn">사진 없이 다음</button>
+      </div>
+    </section>
+
+    <section id="form" class="shell">
+      <p class="eyebrow">꽃 정보 입력</p>
+      <h2>분석에 필요한 정보를 알려주세요</h2>
+      <div class="form-grid">
+        <div class="card">
+          <img id="formImage" class="preview" alt="분석할 꽃 사진" />
+          <div style="padding:16px"><strong>촬영 이미지</strong><p>꽃 상태와 입력 정보를 함께 바탕으로 판별합니다.</p></div>
+        </div>
+        <form class="card form-panel fields" id="infoForm">
+          <label>꽃 종류 *
+            <select id="flowerType" required>
+              <option value="">선택해주세요</option>
+              <option>장미</option><option>국화</option><option>튤립</option><option>백합</option><option>카네이션</option><option>기타</option>
+            </select>
+          </label>
+          <div class="two">
+            <label>줄기 길이 *
+              <input id="stemLength" type="number" min="0" placeholder="예: 45" required />
+            </label>
+            <label>촬영 부위 *
+              <select id="shootingPart"><option>전체</option><option>꽃송이 중심</option><option>줄기 포함</option></select>
+            </label>
+          </div>
+          <label>수량 또는 묶음 단위 *
+            <input id="quantity" placeholder="예: 10송이, 1단" required />
+          </label>
+          <div class="two">
+            <label>품종 <input id="variety" placeholder="예: 스탠다드 장미" /></label>
+            <label>출하일 <input id="shippedAt" type="date" /></label>
+          </div>
+          <label>특이사항 <textarea id="memo" placeholder="예: 일부 꽃잎 끝이 살짝 마름"></textarea></label>
+          <div class="bottom-actions">
+            <button type="button" class="secondary" onclick="go('camera')">이전으로</button>
+            <button class="primary" type="submit">분석 요청하기</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="loading" class="shell">
+      <div class="spinner-card">
+        <div class="card" style="padding:44px 28px;max-width:460px">
+          <div class="petal"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2>Florai가 꽃의 상태를 분석하고 있어요.</h2>
+          <p>사진과 입력 정보를 바탕으로 품질 등급을 판별하는 중입니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="result" class="shell">
+      <p class="eyebrow">품질 리포트</p>
+      <h2>판별 결과를 확인해주세요</h2>
+      <div class="report">
+        <div class="card grade">
+          <p>판별 결과</p>
+          <b id="grade">A</b>
+          <h2 id="gradeLabel">A등급</h2>
+          <strong id="gradeChip">상급 판매 적합</strong>
+        </div>
+        <div>
+          <div class="card report-section"><h3>요약</h3><p id="summary"></p></div>
+          <div class="card report-section"><h3>판단 근거</h3><ul id="reasons"></ul></div>
+          <div class="card report-section"><h3>주의 사항</h3><ul id="warnings"></ul></div>
+          <div class="card report-section" style="background:var(--pink-soft)"><h3>추천</h3><p id="recommendation"></p></div>
+        </div>
+      </div>
+      <p class="notice">본 결과는 AI 기반 참고용 판별 결과이며, 최종 등급은 실제 검수 기준에 따라 달라질 수 있습니다.</p>
+      <div class="bottom-actions">
+        <button class="secondary" onclick="retake()">다시 촬영하기</button>
+        <button class="primary" onclick="restart()">새 분석 시작하기</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const sampleImage =
+      "data:image/svg+xml;charset=UTF-8," +
+      encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100">
+          <rect width="900" height="1100" fill="#fbf6eb"/>
+          <circle cx="450" cy="410" r="168" fill="#f4a6a6" opacity=".28"/>
+          <circle cx="365" cy="350" r="112" fill="#f4a6a6"/>
+          <circle cx="535" cy="350" r="112" fill="#f8baba"/>
+          <circle cx="450" cy="505" r="120" fill="#ee8f9a"/>
+          <circle cx="450" cy="405" r="82" fill="#fff3a8"/>
+          <path d="M450 560 C430 710 390 850 330 1010" stroke="#347b54" stroke-width="26" fill="none" stroke-linecap="round"/>
+          <path d="M450 640 C560 660 642 728 690 830" stroke="#9fd9b5" stroke-width="22" fill="none" stroke-linecap="round"/>
+          <path d="M446 730 C355 700 285 735 240 805" stroke="#9fd9b5" stroke-width="22" fill="none" stroke-linecap="round"/>
+          <text x="450" y="1010" text-anchor="middle" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#637168">샘플 꽃 이미지</text>
+        </svg>
+      `);
+    let capturedImage = "";
+    let stream = null;
+
+    const sections = ["landing", "camera", "form", "loading", "result"];
+    const $ = (id) => document.getElementById(id);
+
+    function go(id) {
+      sections.forEach((name) => $(name).classList.toggle("active", name === id));
+      if (id === "camera") startCamera();
+      if (id !== "camera") stopCamera();
+      window.scrollTo(0, 0);
+    }
+
+    async function startCamera() {
+      const video = $("video");
+      $("preview").style.display = capturedImage ? "block" : "none";
+      video.style.display = capturedImage ? "none" : "block";
+      if (capturedImage || stream) return;
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+        video.srcObject = stream;
+      } catch (error) {
+        video.style.display = "grid";
+        video.insertAdjacentHTML("afterend", '<div style="position:absolute;inset:0;display:grid;place-items:center;color:white;text-align:center;padding:30px">카메라를 사용할 수 없으면 사진 업로드를 이용해주세요.</div>');
+      }
+    }
+
+    function stopCamera() {
+      if (!stream) return;
+      stream.getTracks().forEach((track) => track.stop());
+      stream = null;
+    }
+
+    function setCaptured(dataUrl) {
+      capturedImage = dataUrl;
+      $("preview").src = dataUrl;
+      $("formImage").src = dataUrl;
+      $("video").style.display = "none";
+      $("preview").style.display = "block";
+      $("captureBtn").textContent = "다음으로";
+      $("uploadBtn").textContent = "다시 촬영하기";
+      stopCamera();
+    }
+
+    $("captureBtn").addEventListener("click", () => {
+      if (capturedImage) {
+        go("form");
+        return;
+      }
+      const video = $("video");
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth || 1200;
+      canvas.height = video.videoHeight || 900;
+      const ctx = canvas.getContext("2d");
+      if (video.videoWidth && ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        setCaptured(canvas.toDataURL("image/jpeg", .9));
+      } else {
+        setCaptured(sampleImage);
+      }
+    });
+
+    $("skipPhotoBtn").addEventListener("click", () => {
+      if (!capturedImage) setCaptured(sampleImage);
+      go("form");
+    });
+
+    $("uploadBtn").addEventListener("click", () => {
+      if (capturedImage) {
+        capturedImage = "";
+        $("preview").removeAttribute("src");
+        $("preview").style.display = "none";
+        $("video").style.display = "block";
+        $("captureBtn").textContent = "촬영하기";
+        $("uploadBtn").textContent = "사진 업로드";
+        startCamera();
+      } else {
+        $("fileInput").click();
+      }
+    });
+
+    $("fileInput").addEventListener("change", (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => setCaptured(String(reader.result));
+      reader.readAsDataURL(file);
+    });
+
+    $("infoForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!capturedImage) setCaptured(sampleImage);
+      go("loading");
+      setTimeout(showResult, 1400);
+    });
+
+    function showResult() {
+      const flowerType = $("flowerType").value || "꽃";
+      const memo = $("memo").value || "";
+      const concern = /손상|시듦|변색|상처|곰팡이/.test(memo);
+      const grade = concern ? "B" : "A";
+      $("grade").textContent = grade;
+      $("gradeLabel").textContent = grade + "등급";
+      $("gradeChip").textContent = concern ? "확인 후 판매" : "상급 판매 적합";
+      $("summary").textContent = flowerType + " 상태가 전반적으로 양호하며 판매 가능한 품질로 판단됩니다.";
+      fillList("reasons", ["꽃잎 손상이 적습니다.", "색상 균일도가 양호합니다.", "개화 상태가 판매 적정 범위에 가깝습니다."]);
+      fillList("warnings", ["촬영 각도에 따라 결과가 달라질 수 있습니다."]);
+      $("recommendation").textContent = concern
+        ? "출하 전 손상 부위를 한 번 더 확인하면 판매 안정성이 높아집니다."
+        : "도매 및 소매 판매용으로 적합합니다.";
+      go("result");
+    }
+
+    function fillList(id, items) {
+      $(id).innerHTML = items.map((item) => "<li>" + item + "</li>").join("");
+    }
+
+    function retake() {
+      capturedImage = "";
+      $("captureBtn").textContent = "촬영하기";
+      $("uploadBtn").textContent = "사진 업로드";
+      go("camera");
+    }
+
+    function restart() {
+      capturedImage = "";
+      $("infoForm").reset();
+      $("captureBtn").textContent = "촬영하기";
+      $("uploadBtn").textContent = "사진 업로드";
+      go("landing");
+    }
+  </script>
+</body>
+</html>

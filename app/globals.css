@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+:root {
+  --surface: #fffdf8;
+  --surface-strong: #ffffff;
+  --ink: #1f3029;
+  --muted: #637168;
+  --line: #dde8df;
+  --green: #9fd9b5;
+  --green-strong: #347b54;
+  --pink: #f4a6a6;
+  --pink-soft: #fff0ee;
+  --ivory: #fbf6eb;
+  --shadow: 0 18px 45px rgba(31, 48, 41, 0.1);
+}
+
+@theme inline {
+  --color-background: var(--surface);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--surface);
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(159, 217, 181, 0.22), transparent 28rem),
+    linear-gradient(180deg, #fffdf8 0%, #f8fbf4 100%);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(52, 123, 84, 0.28);
+  outline-offset: 2px;
+}
+
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.florai-shell {
+  width: min(100%, 1040px);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.petal-spinner {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  animation: soft-spin 2.4s linear infinite;
+}
+
+.petal-spinner span {
+  position: absolute;
+  left: 30px;
+  top: 8px;
+  width: 18px;
+  height: 32px;
+  border-radius: 999px 999px 6px 6px;
+  background: var(--pink);
+  transform-origin: 8px 30px;
+  opacity: 0.72;
+}
+
+.petal-spinner span:nth-child(2) {
+  transform: rotate(72deg);
+  background: var(--green);
+}
+
+.petal-spinner span:nth-child(3) {
+  transform: rotate(144deg);
+}
+
+.petal-spinner span:nth-child(4) {
+  transform: rotate(216deg);
+  background: var(--green);
+}
+
+.petal-spinner span:nth-child(5) {
+  transform: rotate(288deg);
+}
+
+@keyframes soft-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
