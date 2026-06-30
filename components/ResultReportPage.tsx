@@ -23,7 +23,6 @@ const t = {
   summary: "요약",
   reasons: "판단 근거",
   measurements: "입력/측정 정보",
-  evidence: "표준규격 근거",
   warnings: "주의 사항",
   recommendation: "추천",
   disclaimer:
@@ -123,7 +122,6 @@ export function ResultReportPage({
               ["대기준", getCategoryLabel(form.categoryType)],
               ["중기준", form.item],
               ["소기준", form.cultivar],
-              ["class_id", form.cultivarClassId],
             ]}
           />
         </div>
@@ -145,9 +143,6 @@ export function ResultReportPage({
               title={t.perImageFindings}
               items={result.perImageFindings}
             />
-          )}
-          {result.evidence && result.evidence.length > 0 && (
-            <ReportEvidence title={t.evidence} items={result.evidence} />
           )}
           <ReportList title={t.warnings} items={result.warnings} warning />
           <ReportSection
@@ -266,33 +261,6 @@ function ReportImageFindings({
                 </li>
               ))}
             </ul>
-          </div>
-        ))}
-      </div>
-    </article>
-  );
-}
-
-function ReportEvidence({
-  title,
-  items,
-}: {
-  title: string;
-  items: NonNullable<AnalysisResult["evidence"]>;
-}) {
-  return (
-    <article className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
-      <h2 className="text-base font-black">{title}</h2>
-      <div className="mt-3 grid gap-3">
-        {items.map((item) => (
-          <div
-            key={item.title}
-            className="rounded-lg bg-[var(--surface)] px-4 py-3"
-          >
-            <p className="font-black">{item.title}</p>
-            <p className="mt-1 text-sm font-semibold leading-6 text-[var(--muted)]">
-              {item.body}
-            </p>
           </div>
         ))}
       </div>

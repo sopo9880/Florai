@@ -14,8 +14,8 @@ export const FLOWER_CATEGORY_OPTIONS = [
   },
 ] as const;
 
-const CUT_FLOWER_ITEM_IDS = new Set(["01", "02", "03", "04"]);
-const POTTED_PLANT_ITEM_IDS = new Set(["06", "07", "08", "09", "10"]);
+const CUT_FLOWER_ITEM_IDS = new Set(["01", "02", "03", "12"]);
+const POTTED_PLANT_ITEM_IDS = new Set(["06", "07", "08", "09", "10", "13", "14", "15"]);
 
 export function getCategoryLabel(categoryType: CategoryType) {
   return FLOWER_CATEGORY_OPTIONS.find((option) => option.value === categoryType)?.label ?? "";

@@ -29,6 +29,8 @@ const t = {
   purchase: "구매 요청하기",
   back: "상품 목록으로",
   orderHistory: "구매 내역 보기",
+  ownListingTitle: "본인이 등록한 상품입니다",
+  ownListingBody: "판매자가 직접 등록한 상품은 같은 계정으로 구매할 수 없습니다.",
 };
 
 type ProductPurchasePageProps = {
@@ -47,6 +49,7 @@ export function ProductPurchasePage({
   onViewOrders,
 }: ProductPurchasePageProps) {
   const defaults = useMemo(() => createPurchaseDefaults(listing, buyer), [buyer, listing]);
+  const isOwnListing = Boolean(buyer && buyer.userId === listing.seller.sellerId);
   const [fields, setFields] = useState<PurchaseOrderFields>(defaults);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -59,6 +62,11 @@ export function ProductPurchasePage({
   };
 
   const submitPurchase = () => {
+    if (isOwnListing) {
+      setErrorMessage(t.ownListingBody);
+      return;
+    }
+
     const quantity = Number(fields.quantity);
 
     if (!fields.buyerName.trim()) {
@@ -98,6 +106,11 @@ export function ProductPurchasePage({
         <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-[var(--muted)]">
           {t.description}
         </p>
+        {isOwnListing && (
+          <p className="mt-4 max-w-3xl rounded-lg bg-[var(--pink-soft)] px-4 py-3 text-sm font-bold leading-6 text-[#9d4949]">
+            {t.ownListingBody}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
@@ -251,8 +264,8 @@ export function ProductPurchasePage({
       <div className="safe-bottom sticky bottom-0 -mx-4 mt-5 grid gap-3 bg-[linear-gradient(180deg,rgba(255,253,248,0),var(--surface)_22%)] px-4 pt-6 sm:grid-cols-3">
         <SecondaryButton onClick={onBack}>{t.back}</SecondaryButton>
         <SecondaryButton onClick={onViewOrders}>{t.orderHistory}</SecondaryButton>
-        <PrimaryButton onClick={submitPurchase} disabled={listing.sale.quantity <= 0}>
-          {listing.sale.quantity <= 0 ? "품절" : t.purchase}
+        <PrimaryButton onClick={submitPurchase} disabled={listing.sale.quantity <= 0 || isOwnListing}>
+          {listing.sale.quantity <= 0 ? "품절" : isOwnListing ? t.ownListingTitle : t.purchase}
         </PrimaryButton>
       </div>
     </section>

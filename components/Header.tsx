@@ -8,6 +8,7 @@ type HeaderProps = {
   onLogout: () => void;
   onMyPage: () => void;
   onToggleSidebar: () => void;
+  onHome: () => void;
 };
 
 export function Header({
@@ -17,6 +18,7 @@ export function Header({
   onLogout,
   onMyPage,
   onToggleSidebar,
+  onHome,
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-20 border-b border-[rgba(221,232,223,0.8)] bg-[rgba(255,253,248,0.86)] backdrop-blur">
@@ -32,13 +34,22 @@ export function Header({
               ☰
             </button>
           )}
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--green)] text-lg font-black text-[var(--green-strong)]">
-            F
-          </div>
-          <button type="button" onClick={onMyPage} className="min-w-0 text-left">
+          <button
+            type="button"
+            onClick={onHome}
+            className="brand-flower-logo shrink-0"
+            aria-label="Florai 홈으로 이동"
+          >
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+          </button>
+          <button type="button" onClick={onHome} className="min-w-0 text-left">
             <p className="text-lg font-black leading-none">Florai</p>
             <p className="mt-1 truncate text-xs font-semibold text-[var(--muted)]">
-              AI 화훼 품질 관리
+              꽃미남
             </p>
           </button>
         </div>

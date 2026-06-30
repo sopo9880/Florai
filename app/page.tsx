@@ -195,6 +195,7 @@ export default function Home() {
         onLogout={logout}
         onMyPage={() => go(currentUser ? "mypage" : "login")}
         onToggleSidebar={() => setSidebarOpen((open) => !open)}
+        onHome={resetToLanding}
       />
 
       {currentUser?.role === "seller" && (
@@ -312,9 +313,13 @@ export default function Home() {
         <ProductMarketplacePage
           canAnalyze={isSeller}
           canPurchase={canPurchase}
+          currentUser={currentUser}
           onBack={resetToLanding}
           onNewAnalysis={startNewAnalysis}
           onPurchase={(listing) => {
+            if (currentUser?.userId === listing.seller.sellerId) {
+              return;
+            }
             setSelectedListing(listing);
             setStep("purchase");
           }}

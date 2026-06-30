@@ -79,7 +79,7 @@ export async function POST(request: Request) {
           error: {
             code: "REDIS_ENQUEUE_FAILED",
             message:
-              "Redis 작업 등록에 실패했습니다. Render 환경변수와 Redis 상태를 확인해 주세요.",
+              "분석 작업 등록에 실패했습니다. 서버 연결 상태를 확인해 주세요.",
           },
         },
         { status: 500 },
@@ -310,6 +310,7 @@ function createPottedPlantMock({
   imageCount: number;
   imageMetas?: Array<Record<string, string | number>>;
 }): AnalysisResult {
+  void cultivarClassId;
   const leafArea = measurements.leafArea || "미입력";
   const pottedStemLengthCm = measurements.pottedStemLengthCm || "미입력";
   const growthCondition = observations.growthCondition || "균형 양호";
@@ -328,15 +329,14 @@ function createPottedPlantMock({
       ? `${cultivarClassName}에서 입력 조건상 생육 이상 가능성이 있어 추가 확인이 필요합니다.`
       : `${cultivarClassName}의 잎 면적과 전체 생육 상태가 전반적으로 양호합니다.`,
     reasons: [
-      `데이터셋 class_id ${cultivarClassId || "미지정"} 정보를 수신했습니다.`,
+      `품목·품종 정보를 수신했습니다.`,
       `${measurements.potSizeHo || "-"}호 화분 규격을 기준 물체로 함께 전달했습니다.`,
       `잎 면적은 '${leafArea}', 줄기 길이는 '${pottedStemLengthCm}cm'입니다.`,
       `개화 여부는 '${floweringStatus}', 전체 생육 상태는 '${growthCondition}'입니다.`,
       `총 ${imageCount}장의 멀티뷰 이미지를 수신했습니다.`,
     ],
     warnings: [
-      "현재 API는 Redis가 설정되지 않았을 때 반환하는 Render 서버용 mock 응답입니다.",
-      "REDIS_URL을 설정하면 이 API는 Redis jobId를 반환하고 worker 결과를 polling합니다.",
+      "AI 보조 판정 결과이므로 출하 전 실물 상태를 한 번 더 확인해 주세요.",
       ...(hasConcern ? ["메모에 이상 징후 가능성이 포함되어 있습니다."] : []),
     ],
     recommendation: abnormal
@@ -375,6 +375,7 @@ function createCutFlowerMock({
   imageCount: number;
   imageMetas?: Array<Record<string, string | number>>;
 }): AnalysisResult {
+  void cultivarClassId;
   const stemLength = Number(measurements.stemLengthCm || 0);
   const floweringStage = observations.floweringStage || "4/5 개화";
   const leafArea = measurements.leafArea || "미입력";
@@ -395,22 +396,21 @@ function createCutFlowerMock({
       ? `${cultivarClassName}에서 개화 상태 또는 메모상 이상 가능성이 있어 추가 검수가 필요합니다.`
       : `${cultivarClassName}는 입력된 줄기 길이·개화 정도·잎 면적 기준으로 ${grade} 등급 후보입니다.`,
     reasons: [
-      `데이터셋 class_id ${cultivarClassId || "미지정"} 정보를 수신했습니다.`,
+      `품목·품종 정보를 수신했습니다.`,
       `꽃대/줄기 길이 ${measurements.stemLengthCm || "미입력"}cm, 묶음 본수 ${measurements.bundleCount || "미입력"}본입니다.`,
       `개화 정도는 '${floweringStage}', 잎 면적은 '${leafArea}'입니다.`,
       `총 ${imageCount}장의 멀티뷰 이미지를 수신했습니다.`,
       "절화류는 자를 함께 촬영하도록 안내하여 이미지 내 줄기 신장 추정을 보조합니다.",
     ],
     warnings: [
-      "현재 API는 Redis가 설정되지 않았을 때 반환하는 Render 서버용 mock 응답입니다.",
-      "REDIS_URL을 설정하면 이 API는 Redis jobId를 반환하고 worker 결과를 polling합니다.",
+      "AI 보조 판정 결과이므로 출하 전 실물 상태를 한 번 더 확인해 주세요.",
       ...(hasConcern
         ? ["메모에 손상·변색·시듦 등 품질 저하 가능성이 포함되어 있습니다."]
         : []),
     ],
     recommendation: abnormal
       ? "개화 정도와 잎 면적이 잘 보이도록 재촬영하고, 자가 함께 포함되었는지 확인해 주세요."
-      : "자를 함께 촬영하고 표준규격 기반 RAG 근거를 연결하면 설명 신뢰도가 높아집니다.",
+      : "자를 함께 촬영하고 품질 판정 기준과 비교하면 설명 신뢰도가 높아집니다.",
     imageCount,
     perImageFindings: createMockPerImageFindings(imageMetas, imageCount),
     evidence: [

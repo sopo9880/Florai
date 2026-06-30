@@ -57,7 +57,6 @@ export function CameraCapturePage({
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const guide = buildCaptureGuide(form);
-  const isPottedPlant = form.categoryType === "potted_plant";
   const slots = useMemo(() => getCaptureSlots(form), [form]);
   const [selectedView, setSelectedView] = useState<ImageViewType>(slots[0]?.view ?? "front_full");
   const selectedSlot = slots.find((slot) => slot.view === selectedView) ?? slots[0];
@@ -197,30 +196,11 @@ export function CameraCapturePage({
               </div>
             )}
 
-            <div className="pointer-events-none absolute inset-0 grid place-items-center p-6">
-              {isPottedPlant ? (
-                <div className="relative h-[82%] max-h-[540px] w-[58%] min-w-[230px] max-w-[420px]">
-                  <div className="absolute inset-x-[8%] top-0 h-[64%] rounded-[2rem] border-2 border-dashed border-white/80 bg-white/[0.02]" />
-                  <div className="absolute bottom-[3%] left-1/2 h-[34%] w-[78%] -translate-x-1/2">
-                    <div className="absolute left-0 right-0 top-0 h-[28%] rounded-full border-2 border-dashed border-white/95 bg-white/[0.04]" />
-                    <div
-                      className="absolute bottom-0 left-1/2 h-[86%] w-[74%] -translate-x-1/2 border-2 border-dashed border-white/95 bg-white/[0.03]"
-                      style={{ clipPath: "polygon(8% 0, 92% 0, 78% 100%, 22% 100%)" }}
-                    />
-                  </div>
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/55 px-3 py-1 text-[11px] font-black text-white shadow-sm">
-                    {selectedSlot?.view === "top_view" ? "상단에서 내려다보기" : t.potGuide}
-                  </span>
-                </div>
-              ) : (
-                <div className="relative h-[80%] max-h-[520px] w-[62%] min-w-[240px] max-w-[460px] rounded-[1.25rem] border-2 border-dashed border-white/90 bg-white/[0.03] shadow-[0_0_0_1px_rgba(0,0,0,0.22)] backdrop-blur-[1px]">
-                  <div className="absolute bottom-[6%] left-[8%] top-[10%] w-3 rounded-full border border-white/70 bg-white/[0.05]" />
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/55 px-3 py-1 text-[11px] font-black text-white shadow-sm">
-                    {selectedSlot?.view === "top_view" ? "상단 뷰" : t.rulerGuide}
-                  </span>
-                </div>
-              )}
-            </div>
+            {!selectedImage && cameraReady && (
+              <div className="pointer-events-none absolute left-4 top-4 rounded-full bg-black/50 px-3 py-1.5 text-xs font-black text-white shadow-sm">
+                {selectedSlot?.label}
+              </div>
+            )}
           </div>
 
           <div className="grid gap-2 rounded-lg border border-[var(--line)] bg-white p-3 shadow-sm sm:grid-cols-3">

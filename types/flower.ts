@@ -23,6 +23,10 @@ export type FlowerClassInfo = {
   cultivarId: string;
   cultivar: string;
   cultivarClassName: string;
+  normalClassFolder?: string | null;
+  defectClassFolder?: string | null;
+  hasNormalClass?: boolean;
+  hasDefectClass?: boolean;
 };
 
 export type PotSizeInfo = {
@@ -75,6 +79,7 @@ export type AnalysisImageFinding = {
 export type AnalysisResult = {
   condition: AnalysisCondition;
   grade: AnalysisGrade;
+  originalLabel?: string;
   confidence: number;
   summary: string;
   reasons: string[];

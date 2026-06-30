@@ -18,11 +18,11 @@ const t = {
   eyebrow: "1단계 · 식물 정보 입력",
   title: "촬영 전에 품목과 판별 조건을 먼저 입력해주세요",
   supportNotice:
-    "선택한 대기준에 따라 필요한 입력 항목과 촬영 가이드가 달라집니다. 입력값은 모델 서버와 RAG 판정 근거 생성에 함께 전달됩니다.",
+    "선택한 대기준에 따라 필요한 입력 항목과 촬영 가이드가 달라집니다. 입력값은 품질 판정과 근거 리포트 생성에 함께 활용됩니다.",
   categoryType: "대기준",
   item: "중기준 · 품목",
   cultivar: "소기준 · 품종",
-  selectedClass: "선택 클래스",
+  selectedClass: "선택 품종",
   categorySelect: "대기준을 선택해주세요",
   itemSelect: "품목을 선택해주세요",
   cultivarSelect: "품종을 선택해주세요",
@@ -256,7 +256,7 @@ export function FlowerInfoFormPage({
 
           {draft.cultivarClassName && (
             <div className="rounded-lg border border-[rgba(128,191,142,0.35)] bg-[rgba(128,191,142,0.1)] px-4 py-3 text-sm font-bold leading-6 text-[var(--green-strong)]">
-              {t.selectedClass}: {getCategoryLabel(draft.categoryType)} / {draft.item} / {draft.cultivar} · class_id {draft.cultivarClassId}
+              {t.selectedClass}: {getCategoryLabel(draft.categoryType)} / {draft.item} / {draft.cultivar}
             </div>
           )}
         </div>

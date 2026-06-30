@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { productListingRepository } from "@/services/productListingRepository";
+import type { AuthUser } from "@/types/auth";
 import type { ProductListing } from "@/types/productListing";
 import { PrimaryButton } from "./PrimaryButton";
 import { SecondaryButton } from "./SecondaryButton";
@@ -19,11 +20,13 @@ const t = {
   orders: "구매 내역",
   buy: "구매하기",
   soldOut: "품절",
+  ownListing: "내 상품",
 };
 
 type ProductMarketplacePageProps = {
   canAnalyze: boolean;
   canPurchase: boolean;
+  currentUser: AuthUser | null;
   onBack: () => void;
   onNewAnalysis: () => void;
   onPurchase: (listing: ProductListing) => void;
@@ -34,6 +37,7 @@ type ProductMarketplacePageProps = {
 export function ProductMarketplacePage({
   canAnalyze,
   canPurchase,
+  currentUser,
   onBack,
   onNewAnalysis,
   onPurchase,
@@ -99,7 +103,11 @@ export function ProductMarketplacePage({
             <ProductListingCard
               key={listing.listingId}
               listing={listing}
+              isOwnListing={currentUser?.userId === listing.seller.sellerId}
               onPurchase={() => {
+                if (currentUser?.userId === listing.seller.sellerId) {
+                  return;
+                }
                 if (!canPurchase) {
                   onLoginRequired();
                   return;
@@ -125,12 +133,15 @@ export function ProductMarketplacePage({
 
 function ProductListingCard({
   listing,
+  isOwnListing,
   onPurchase,
 }: {
   listing: ProductListing;
+  isOwnListing: boolean;
   onPurchase: () => void;
 }) {
   const isSoldOut = listing.sale.quantity <= 0 || listing.status === "hidden";
+  const purchaseDisabled = isSoldOut || isOwnListing;
 
   return (
     <article className="overflow-hidden rounded-xl border border-white bg-white shadow-[var(--shadow)]">
@@ -152,6 +163,11 @@ function ProductListingCard({
               {t.soldOut}
             </span>
           )}
+          {isOwnListing && !isSoldOut && (
+            <span className="rounded-full bg-[var(--pink-soft)] px-3 py-1 text-xs font-black text-[#9d4949]">
+              {t.ownListing}
+            </span>
+          )}
         </div>
         <h2 className="mt-3 line-clamp-2 text-lg font-black">{listing.product.title}</h2>
         <p className="mt-2 text-xl font-black text-[var(--green-strong)]">
@@ -168,10 +184,10 @@ function ProductListingCard({
         <button
           type="button"
           onClick={onPurchase}
-          disabled={isSoldOut}
+          disabled={purchaseDisabled}
           className="mt-4 min-h-12 w-full rounded-full bg-[var(--green-strong)] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:translate-y-[-1px] hover:bg-[#2b6847] disabled:cursor-not-allowed disabled:bg-[#b9c9bf]"
         >
-          {isSoldOut ? t.soldOut : t.buy}
+          {isSoldOut ? t.soldOut : isOwnListing ? t.ownListing : t.buy}
         </button>
       </div>
     </article>

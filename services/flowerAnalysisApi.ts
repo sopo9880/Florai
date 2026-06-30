@@ -256,8 +256,7 @@ function createMockAnalysisResult(
         "분화류는 화분 모양과 실제 화분 규격을 기준으로 이미지 내 크기 추정을 수행하는 구조입니다.",
       ],
       warnings: [
-        "현재 결과는 Render API 라우트에서 반환하는 임시 mock 판정입니다.",
-        "실제 모델 연결 후에는 Vision Encoder 결과와 RAG 기준표 근거가 결합됩니다.",
+        "AI 보조 판정 결과이므로 출하 전 실물 상태를 한 번 더 확인해 주세요.",
         ...(hasConcern ? ["메모에 이상 징후 가능성이 포함되어 있습니다."] : []),
       ],
       recommendation: abnormal
@@ -300,15 +299,14 @@ function createMockAnalysisResult(
       "절화류는 자를 함께 촬영하도록 안내하여 이미지 내 줄기 신장 추정을 보조합니다.",
     ],
     warnings: [
-      "현재 결과는 Render API 라우트에서 반환하는 임시 mock 판정입니다.",
-      "실제 모델 연결 후에는 정상/비정상 head와 grade head 결과가 함께 반영됩니다.",
+      "AI 보조 판정 결과이므로 출하 전 실물 상태를 한 번 더 확인해 주세요.",
       ...(hasConcern
         ? ["메모에 손상·변색·시듦 등 품질 저하 가능성이 포함되어 있습니다."]
         : []),
     ],
     recommendation: abnormal
       ? "개화 정도와 잎 면적이 잘 보이도록 재촬영하고, 자가 함께 포함되었는지 확인해 주세요."
-      : "자를 함께 촬영하고 표준규격 기반 RAG 근거를 연결하면 설명 신뢰도가 높아집니다.",
+      : "자를 함께 촬영하고 품질 판정 기준과 비교하면 설명 신뢰도가 높아집니다.",
     imageCount,
     perImageFindings: createMockPerImageFindings(request.images),
     evidence: [

@@ -9,6 +9,7 @@ const t = {
   title: "입력한 식물 유형에 맞춰 이렇게 촬영해주세요",
   selected: "선택 정보",
   checklist: "촬영 체크리스트",
+  example: "촬영 예시",
   payload: "서버 전달 요약",
   back: "정보 수정하기",
   start: "촬영 시작하기",
@@ -51,26 +52,34 @@ export function CaptureGuidePage({
             <InfoRow label="대기준" value={getCategoryLabel(form.categoryType)} />
             <InfoRow label="중기준" value={form.item} />
             <InfoRow label="소기준" value={form.cultivar} />
-            <InfoRow label="class_id" value={form.cultivarClassId} />
             <InfoRow label="촬영 모드" value={guide.mode} />
           </dl>
         </article>
 
-        <article className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-[var(--shadow)]">
-          <p className="text-sm font-black text-[var(--green-strong)]">
-            {t.checklist}
-          </p>
-          <ul className="mt-4 grid gap-3">
-            {guide.checklist.map((item, index) => (
-              <li key={item} className="flex gap-3 leading-7 text-[var(--muted)]">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[rgba(128,191,142,0.18)] text-sm font-black text-[var(--green-strong)]">
-                  {index + 1}
-                </span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </article>
+        <div className="grid gap-5">
+          <article className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-[var(--shadow)]">
+            <p className="text-sm font-black text-[var(--green-strong)]">
+              {t.example}
+            </p>
+            <CaptureExampleIllustration isPottedPlant={isPottedPlant} />
+          </article>
+
+          <article className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-[var(--shadow)]">
+            <p className="text-sm font-black text-[var(--green-strong)]">
+              {t.checklist}
+            </p>
+            <ul className="mt-4 grid gap-3">
+              {guide.checklist.map((item, index) => (
+                <li key={item} className="flex gap-3 leading-7 text-[var(--muted)]">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[rgba(128,191,142,0.18)] text-sm font-black text-[var(--green-strong)]">
+                    {index + 1}
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        </div>
       </div>
 
       <article className="mt-5 rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
@@ -105,6 +114,43 @@ export function CaptureGuidePage({
         <PrimaryButton onClick={onStartCapture}>{t.start}</PrimaryButton>
       </div>
     </section>
+  );
+}
+
+function CaptureExampleIllustration({ isPottedPlant }: { isPottedPlant: boolean }) {
+  return (
+    <div className="mt-4 capture-example-frame">
+      <span className="capture-example-label">사진 프레임 안에 이렇게 맞춰주세요</span>
+      {isPottedPlant ? (
+        <>
+          <div className="capture-pot-stem" />
+          <div className="capture-pot-leaf left-1" />
+          <div className="capture-pot-leaf left-2" />
+          <div className="capture-pot-leaf right-1" />
+          <div className="capture-pot-leaf right-2" />
+          <div className="capture-example-pot" />
+          <p className="capture-example-caption">
+            화분 윗면과 옆면 윤곽, 식물의 가장 높은 지점이 모두 프레임 안에 들어오게 촬영합니다.
+          </p>
+        </>
+      ) : (
+        <>
+          <div className="capture-example-ruler" />
+          <div className="capture-flower-stem" />
+          <div className="capture-flower-head">
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+          <p className="capture-example-caption">
+            자와 꽃, 줄기가 함께 보이도록 배치해 길이 기준을 확보합니다.
+          </p>
+        </>
+      )}
+    </div>
   );
 }
 

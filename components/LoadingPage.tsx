@@ -1,7 +1,7 @@
 const t = {
   title: "Florai가 품질 판정 근거를 구성하고 있어요.",
   body:
-    "이미지와 입력 정보를 Render API로 전달하고, 정상/비정상 판별 및 등급 설명 결과를 기다리는 중입니다.",
+    "이미지와 입력 정보를 바탕으로 정상/비정상 판별 및 등급 설명 결과를 기다리는 중입니다.",
 };
 
 export function LoadingPage() {
