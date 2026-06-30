@@ -97,5 +97,6 @@ export type ProductListingRepository = {
   create(input: CreateProductListingInput): ProductListing;
   list(): ProductListing[];
   get(listingId: string): ProductListing | null;
+  decreaseQuantity(listingId: string, quantity: number): ProductListing | null;
   clear(): void;
 };

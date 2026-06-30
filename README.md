@@ -1,7 +1,7 @@
 # Florai
 
 Florai는 `Flora + AI`를 의미하는 AI 기반 화훼 품질 판별 보조 플랫폼 MVP입니다.
-현재 구조는 **식물 정보 입력 → 촬영 가이드 → 사진 촬영/업로드 → Render API 분석 → 품질 리포트 → 상품 게시 데모** 흐름입니다.
+현재 구조는 **식물 정보 입력 → 촬영 가이드 → 사진 촬영/업로드 → Render API 분석 → 품질 리포트 → 상품 게시 데모 → 상품 구매 요청 데모** 흐름입니다.
 
 ## 핵심 흐름
 
@@ -18,6 +18,7 @@ Florai는 `Flora + AI`를 의미하는 AI 기반 화훼 품질 판별 보조 플
 8. 정상/비정상 여부, 등급 후보, 판단 근거, 주의 사항 출력
 9. 평가 결과 기반 상품 게시 초안 생성
 10. 판매 가격/수량/지역 입력 후 localStorage 데모 상품 목록에 저장
+11. 상품 목록에서 구매 요청 생성 및 구매 내역 확인
 ```
 
 ## Render 배포
@@ -110,7 +111,10 @@ Render Next API
 - `components/ResultReportPage.tsx`: 결과 리포트
 - `components/ProductListingFormPage.tsx`: AI 결과 기반 상품 게시 폼
 - `components/ProductPublishCompletePage.tsx`: 상품 게시 완료 화면
-- `components/ProductMarketplacePage.tsx`: localStorage 기반 데모 상품 목록
+- `components/ProductMarketplacePage.tsx`: localStorage 기반 데모 상품 목록 및 구매 진입
+- `components/ProductPurchasePage.tsx`: 데모 상품 구매 요청 폼
+- `components/ProductPurchaseCompletePage.tsx`: 구매 요청 완료 화면
+- `components/PurchaseOrderHistoryPage.tsx`: localStorage 기반 데모 구매 내역
 - `constants/flowerClassList.ts`: 2022 화훼류 품질 데이터셋 Class List
 - `constants/flowerTaxonomy.ts`: 절화류/분화류 분기
 - `constants/potSizes.ts`: 화분 호수별 cm 규격
@@ -138,3 +142,9 @@ AI 분석 결과
 ## Multi-image capture
 
 멀티뷰 촬영 패치가 적용되어 대표 정면 사진 외에 상단 뷰/근접 사진을 추가로 전송할 수 있습니다. 자세한 계약은 `docs/MULTI_IMAGE_CAPTURE.md`를 확인하세요.
+
+## 상품 구매 데모
+
+상품 구매 기능은 실제 결제 없이 구매 요청 내역을 브라우저 `localStorage`에 저장하는 데모 기능입니다. 상품 목록에서 `구매하기`를 누르면 구매자 이름, 연락처, 구매 수량, 희망 수령일, 수령 방식, 결제 방식을 입력할 수 있습니다. 구매 요청이 완료되면 해당 상품의 데모 재고가 차감되고 구매 내역 화면에서 주문 카드를 확인할 수 있습니다.
+
+나중에 DB를 붙일 때는 `services/purchaseOrderRepository.ts`를 `/api/orders` 호출 방식으로 교체하면 됩니다. 세부 설계는 `docs/PURCHASE_DEMO.md`를 참고하세요.

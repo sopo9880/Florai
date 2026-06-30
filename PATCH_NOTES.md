@@ -1,30 +1,10 @@
-# Florai Polling Interval Patch
+# Florai Purchase Demo Patch
 
-## 변경 내용
-
-Redis 사용량을 줄이기 위해 분석 결과 조회 polling 기본 주기를 40초로 변경했습니다.
-
-- `NEXT_PUBLIC_ANALYSIS_POLL_INTERVAL_MS`: `1500` → `40000`
-- `NEXT_PUBLIC_ANALYSIS_POLL_TIMEOUT_MS`: `120000` → `300000`
-- 코드 기본값도 `1_500ms` → `40_000ms`로 변경
-
-## 영향
-
-- Redis status 조회 빈도가 크게 줄어듭니다.
-- 대신 분석 완료 후 결과 화면 전환이 최대 약 40초 늦게 보일 수 있습니다.
-- 데모에서는 worker 처리 시간이 짧더라도 프론트가 다음 polling 시점까지 기다릴 수 있습니다.
-
-## 로컬 적용
-
-`.env.local`에 이미 값을 넣어두었다면 아래처럼 수정해야 합니다.
-
-```env
-NEXT_PUBLIC_ANALYSIS_POLL_INTERVAL_MS=40000
-NEXT_PUBLIC_ANALYSIS_POLL_TIMEOUT_MS=300000
-```
-
-수정 후 서버를 재시작하세요.
-
-```bash
-npm run dev
-```
+- 상품 목록 카드에 `구매하기` 버튼을 추가했습니다.
+- 데모 상품 구매 요청 화면을 추가했습니다.
+- 구매자 이름, 연락처, 구매 수량, 희망 수령일, 수령 방식, 결제 방식을 입력할 수 있습니다.
+- 구매 요청 완료 화면을 추가했습니다.
+- 구매 내역 화면을 추가했습니다.
+- 구매 요청 데이터는 `localStorage`의 `florai:demo:purchases:v1`에 저장됩니다.
+- 구매 완료 시 같은 브라우저 localStorage 안에서 상품 수량이 차감됩니다.
+- 실제 결제는 발생하지 않으며, DB 확장 시 `services/purchaseOrderRepository.ts`를 `/api/orders` 호출로 교체할 수 있도록 저장소 레이어를 분리했습니다.

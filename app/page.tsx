@@ -11,6 +11,9 @@ import { LoadingPage } from "@/components/LoadingPage";
 import { ProductListingFormPage } from "@/components/ProductListingFormPage";
 import { ProductMarketplacePage } from "@/components/ProductMarketplacePage";
 import { ProductPublishCompletePage } from "@/components/ProductPublishCompletePage";
+import { ProductPurchasePage } from "@/components/ProductPurchasePage";
+import { ProductPurchaseCompletePage } from "@/components/ProductPurchaseCompletePage";
+import { PurchaseOrderHistoryPage } from "@/components/PurchaseOrderHistoryPage";
 import { ResultReportPage } from "@/components/ResultReportPage";
 import { requestFlowerAnalysis } from "@/services/flowerAnalysisApi";
 import type {
@@ -19,6 +22,7 @@ import type {
   FlowerInfoForm,
 } from "@/types/flower";
 import type { ProductListing } from "@/types/productListing";
+import type { PurchaseOrder } from "@/types/purchaseOrder";
 
 type Step =
   | "landing"
@@ -29,7 +33,10 @@ type Step =
   | "result"
   | "listing"
   | "published"
-  | "marketplace";
+  | "marketplace"
+  | "purchase"
+  | "purchaseComplete"
+  | "orders";
 
 const initialForm: FlowerInfoForm = {
   categoryType: "cut_flower",
@@ -65,6 +72,8 @@ export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [publishedListing, setPublishedListing] = useState<ProductListing | null>(null);
+  const [selectedListing, setSelectedListing] = useState<ProductListing | null>(null);
+  const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrder | null>(null);
 
   const clearAnalysisState = () => {
     setCapturedImages([]);
@@ -72,6 +81,8 @@ export default function Home() {
     setResult(null);
     setErrorMessage("");
     setPublishedListing(null);
+    setSelectedListing(null);
+    setPurchaseOrder(null);
   };
 
   const startNewAnalysis = () => {
@@ -190,6 +201,35 @@ export default function Home() {
       {step === "marketplace" && (
         <ProductMarketplacePage
           onBack={resetToLanding}
+          onNewAnalysis={startNewAnalysis}
+          onPurchase={(listing) => {
+            setSelectedListing(listing);
+            setStep("purchase");
+          }}
+          onViewOrders={() => setStep("orders")}
+        />
+      )}
+      {step === "purchase" && selectedListing && (
+        <ProductPurchasePage
+          listing={selectedListing}
+          onBack={() => setStep("marketplace")}
+          onPurchased={(order) => {
+            setPurchaseOrder(order);
+            setStep("purchaseComplete");
+          }}
+          onViewOrders={() => setStep("orders")}
+        />
+      )}
+      {step === "purchaseComplete" && purchaseOrder && (
+        <ProductPurchaseCompletePage
+          order={purchaseOrder}
+          onViewMarketplace={() => setStep("marketplace")}
+          onViewOrders={() => setStep("orders")}
+        />
+      )}
+      {step === "orders" && (
+        <PurchaseOrderHistoryPage
+          onViewMarketplace={() => setStep("marketplace")}
           onNewAnalysis={startNewAnalysis}
         />
       )}

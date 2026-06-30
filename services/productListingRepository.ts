@@ -31,6 +31,24 @@ export const productListingRepository: ProductListingRepository = {
   get(listingId) {
     return readListings().find((item) => item.listingId === listingId) ?? null;
   },
+  decreaseQuantity(listingId, quantity) {
+    const listings = readListings();
+    const nextListings = listings.map((listing) => {
+      if (listing.listingId !== listingId) return listing;
+      const nextQuantity = Math.max(0, listing.sale.quantity - quantity);
+      return {
+        ...listing,
+        status: nextQuantity <= 0 ? "hidden" : listing.status,
+        updatedAt: new Date().toISOString(),
+        sale: {
+          ...listing.sale,
+          quantity: nextQuantity,
+        },
+      };
+    });
+    writeListings(nextListings);
+    return nextListings.find((item) => item.listingId === listingId) ?? null;
+  },
   clear() {
     if (typeof window === "undefined") return;
     window.localStorage.removeItem(LOCAL_STORAGE_KEY);

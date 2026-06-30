@@ -16,16 +16,23 @@ const t = {
   newAnalysis: "새 분석 시작하기",
   back: "처음으로",
   clear: "데모 목록 비우기",
+  orders: "구매 내역",
+  buy: "구매하기",
+  soldOut: "품절",
 };
 
 type ProductMarketplacePageProps = {
   onBack: () => void;
   onNewAnalysis: () => void;
+  onPurchase: (listing: ProductListing) => void;
+  onViewOrders: () => void;
 };
 
 export function ProductMarketplacePage({
   onBack,
   onNewAnalysis,
+  onPurchase,
+  onViewOrders,
 }: ProductMarketplacePageProps) {
   const [listings, setListings] = useState<ProductListing[]>([]);
 
@@ -53,15 +60,24 @@ export function ProductMarketplacePage({
             {t.description}
           </p>
         </div>
-        {listings.length > 0 && (
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={clearListings}
-            className="rounded-full border border-[var(--line)] bg-white px-4 py-3 text-sm font-black text-[var(--muted)] transition hover:border-[var(--pink)] hover:text-[#9d4949]"
+            onClick={onViewOrders}
+            className="rounded-full border border-[var(--line)] bg-white px-4 py-3 text-sm font-black text-[var(--green-strong)] transition hover:border-[var(--green)] hover:bg-[#f7fbf5]"
           >
-            {t.clear}
+            {t.orders}
           </button>
-        )}
+          {listings.length > 0 && (
+            <button
+              type="button"
+              onClick={clearListings}
+              className="rounded-full border border-[var(--line)] bg-white px-4 py-3 text-sm font-black text-[var(--muted)] transition hover:border-[var(--pink)] hover:text-[#9d4949]"
+            >
+              {t.clear}
+            </button>
+          )}
+        </div>
       </div>
 
       {listings.length === 0 ? (
@@ -74,7 +90,11 @@ export function ProductMarketplacePage({
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {listings.map((listing) => (
-            <ProductListingCard key={listing.listingId} listing={listing} />
+            <ProductListingCard
+              key={listing.listingId}
+              listing={listing}
+              onPurchase={() => onPurchase(listing)}
+            />
           ))}
         </div>
       )}
@@ -87,7 +107,15 @@ export function ProductMarketplacePage({
   );
 }
 
-function ProductListingCard({ listing }: { listing: ProductListing }) {
+function ProductListingCard({
+  listing,
+  onPurchase,
+}: {
+  listing: ProductListing;
+  onPurchase: () => void;
+}) {
+  const isSoldOut = listing.sale.quantity <= 0 || listing.status === "hidden";
+
   return (
     <article className="overflow-hidden rounded-xl border border-white bg-white shadow-[var(--shadow)]">
       <img
@@ -103,6 +131,11 @@ function ProductListingCard({ listing }: { listing: ProductListing }) {
           <span className="rounded-full bg-[var(--surface)] px-3 py-1 text-xs font-black text-[var(--muted)]">
             {listing.product.categoryLabel}
           </span>
+          {isSoldOut && (
+            <span className="rounded-full bg-[var(--pink-soft)] px-3 py-1 text-xs font-black text-[#9d4949]">
+              {t.soldOut}
+            </span>
+          )}
         </div>
         <h2 className="mt-3 line-clamp-2 text-lg font-black">{listing.product.title}</h2>
         <p className="mt-2 text-xl font-black text-[var(--green-strong)]">
@@ -116,6 +149,14 @@ function ProductListingCard({ listing }: { listing: ProductListing }) {
         <p className="mt-3 rounded-lg bg-[var(--surface)] px-3 py-2 text-xs font-semibold leading-5 text-[var(--muted)]">
           {listing.quality.summary}
         </p>
+        <button
+          type="button"
+          onClick={onPurchase}
+          disabled={isSoldOut}
+          className="mt-4 min-h-12 w-full rounded-full bg-[var(--green-strong)] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:translate-y-[-1px] hover:bg-[#2b6847] disabled:cursor-not-allowed disabled:bg-[#b9c9bf]"
+        >
+          {isSoldOut ? t.soldOut : t.buy}
+        </button>
       </div>
     </article>
   );
