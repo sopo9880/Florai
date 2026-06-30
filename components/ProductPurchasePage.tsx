@@ -3,9 +3,9 @@
 import { useMemo, useState, type ReactNode } from "react";
 import {
   createPurchaseDefaults,
-  getPurchaseStorageModeLabel,
   purchaseOrderRepository,
 } from "@/services/purchaseOrderRepository";
+import type { AuthUser } from "@/types/auth";
 import type { ProductDeliveryMethod, ProductListing } from "@/types/productListing";
 import type {
   PurchaseOrder,
@@ -22,7 +22,7 @@ const t = {
   eyebrow: "상품 구매",
   title: "구매 요청 정보를 입력해요",
   description:
-    "현재 구매 로직은 결제 연동 없이 localStorage에 데모 주문을 저장합니다. 나중에는 같은 주문 JSON을 DB/API로 보내고 결제 모듈을 붙일 수 있습니다.",
+    "구매 수량과 수령 방식을 입력하면 판매자에게 구매 요청이 생성됩니다.",
   productInfo: "구매 상품",
   buyerInfo: "구매자 정보",
   orderPreview: "주문 미리보기",
@@ -33,6 +33,7 @@ const t = {
 
 type ProductPurchasePageProps = {
   listing: ProductListing;
+  buyer: AuthUser | null;
   onBack: () => void;
   onPurchased: (order: PurchaseOrder) => void;
   onViewOrders: () => void;
@@ -40,11 +41,12 @@ type ProductPurchasePageProps = {
 
 export function ProductPurchasePage({
   listing,
+  buyer,
   onBack,
   onPurchased,
   onViewOrders,
 }: ProductPurchasePageProps) {
-  const defaults = useMemo(() => createPurchaseDefaults(listing), [listing]);
+  const defaults = useMemo(() => createPurchaseDefaults(listing, buyer), [buyer, listing]);
   const [fields, setFields] = useState<PurchaseOrderFields>(defaults);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -79,7 +81,7 @@ export function ProductPurchasePage({
       return;
     }
 
-    const order = purchaseOrderRepository.create({ listing, fields });
+    const order = purchaseOrderRepository.create({ listing, fields, buyer });
     onPurchased(order);
   };
 
@@ -135,10 +137,6 @@ export function ProductPurchasePage({
         <div className="grid gap-4">
           <article className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
             <h2 className="text-base font-black">{t.buyerInfo}</h2>
-            <p className="mt-2 text-xs font-semibold text-[var(--muted)]">
-              {getPurchaseStorageModeLabel()} · 실제 서비스에서는 로그인한 구매자 정보로 자동 채워집니다.
-            </p>
-
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <Field label="구매자 이름">
                 <input
@@ -245,9 +243,6 @@ export function ProductPurchasePage({
                   {totalPrice.toLocaleString()}원
                 </span>
               </div>
-              <p className="mt-3 text-xs font-semibold leading-5 text-[var(--muted)]">
-                데모에서는 실제 결제가 발생하지 않고, 구매 요청 내역만 저장됩니다.
-              </p>
             </div>
           </article>
         </div>

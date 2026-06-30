@@ -1,23 +1,41 @@
+import type { AuthUser } from "@/types/auth";
 import { PrimaryButton } from "./PrimaryButton";
 import { SecondaryButton } from "./SecondaryButton";
 
 const t = {
   headline: "표준규격 기반 화훼 품질 판별 보조 시스템.",
   description:
-    "대기준·품목·품종 정보를 먼저 입력하고, 선택한 식물 유형에 맞는 촬영 가이드에 따라 이미지를 전달하면 Florai가 정상/비정상 여부와 등급 후보를 설명합니다.",
-  start: "식물 정보 입력하기",
-  marketplace: "데모 상품 목록 보기",
+    "품목과 품종 정보를 입력하고 촬영 가이드에 따라 이미지를 전달하면 Florai가 정상/비정상 여부와 등급 후보를 설명합니다.",
+  sellerStart: "AI 품질 분석 시작하기",
+  buyerMarketplace: "상품 둘러보기",
+  orders: "구매 내역 보기",
+  sellerSignup: "판매자 회원가입",
+  buyerSignup: "구매자 회원가입",
+  login: "로그인하기",
   heroAlt: "스마트폰으로 화훼 상태를 촬영하는 작업대",
-  comingSoon:
-    "지원 구조: 절화류/분화류 분기, 화분 호수 규격 매핑, 표준규격 RAG 근거 생성용 payload",
 };
 
 type LandingPageProps = {
+  user: AuthUser | null;
   onStart: () => void;
   onViewListings: () => void;
+  onViewOrders: () => void;
+  onLogin: () => void;
+  onBuyerSignup: () => void;
+  onSellerSignup: () => void;
 };
 
-export function LandingPage({ onStart, onViewListings }: LandingPageProps) {
+export function LandingPage({
+  user,
+  onStart,
+  onViewListings,
+  onViewOrders,
+  onLogin,
+  onBuyerSignup,
+  onSellerSignup,
+}: LandingPageProps) {
+  const isSeller = user?.role === "seller";
+
   return (
     <section className="florai-shell grid min-h-[calc(100svh-4rem)] items-center gap-8 py-8 md:grid-cols-[1fr_0.92fr] md:py-14">
       <div className="order-2 space-y-7 md:order-1">
@@ -37,13 +55,25 @@ export function LandingPage({ onStart, onViewListings }: LandingPageProps) {
         </div>
 
         <div className="space-y-3 sm:max-w-md">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <PrimaryButton onClick={onStart}>{t.start}</PrimaryButton>
-            <SecondaryButton onClick={onViewListings}>{t.marketplace}</SecondaryButton>
-          </div>
-          <p className="rounded-lg border border-[var(--line)] bg-white/70 px-4 py-3 text-sm font-semibold leading-6 text-[var(--muted)]">
-            {t.comingSoon}
-          </p>
+          {user ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {isSeller && <PrimaryButton onClick={onStart}>{t.sellerStart}</PrimaryButton>}
+              <SecondaryButton onClick={onViewListings}>{t.buyerMarketplace}</SecondaryButton>
+              {!isSeller && <PrimaryButton onClick={onViewOrders}>{t.orders}</PrimaryButton>}
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <PrimaryButton onClick={onSellerSignup}>{t.sellerSignup}</PrimaryButton>
+              <SecondaryButton onClick={onBuyerSignup}>{t.buyerSignup}</SecondaryButton>
+              <button
+                type="button"
+                onClick={onLogin}
+                className="sm:col-span-2 rounded-full border border-[var(--line)] bg-white px-5 py-3 text-sm font-black text-[var(--green-strong)] transition hover:border-[var(--green)] hover:bg-[#f7fbf5]"
+              >
+                {t.login}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

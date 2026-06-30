@@ -1,4 +1,5 @@
 import { getCategoryLabel } from "@/constants/flowerTaxonomy";
+import { authRepository } from "@/services/authRepository";
 import type { FlowerInfoForm } from "@/types/flower";
 import type {
   CreateProductListingInput,
@@ -10,10 +11,6 @@ import type {
 } from "@/types/productListing";
 
 const LOCAL_STORAGE_KEY = "florai:demo:listings:v1";
-const DEMO_SELLER = {
-  sellerId: "demo_seller",
-  sellerName: "데모 판매자",
-};
 
 export const productListingRepository: ProductListingRepository = {
   create(input) {
@@ -87,7 +84,7 @@ export function createDefaultTitle(form: FlowerInfoForm, grade: string) {
 }
 
 export function getListingStorageModeLabel() {
-  return "localStorage 데모 저장";
+  return "브라우저 저장";
 }
 
 export function getDefaultUnit(
@@ -99,6 +96,7 @@ export function getDefaultUnit(
 function buildProductListing({
   source,
   fields,
+  seller,
 }: CreateProductListingInput): ProductListing {
   const now = new Date().toISOString();
   const title =
@@ -115,7 +113,7 @@ function buildProductListing({
     storageMode: "local_demo",
     createdAt: now,
     updatedAt: now,
-    seller: DEMO_SELLER,
+    seller: createSellerSnapshot(seller),
     product: {
       title,
       categoryType: source.form.categoryType,
@@ -155,6 +153,22 @@ function buildProductListing({
       analysis: source.result,
       formSnapshot: source.form,
     },
+  };
+}
+
+function createSellerSnapshot(seller?: CreateProductListingInput["seller"]) {
+  const currentSeller = seller ?? authRepository.getCurrentUser();
+
+  if (currentSeller?.role === "seller") {
+    return {
+      sellerId: currentSeller.userId,
+      sellerName: currentSeller.name,
+    };
+  }
+
+  return {
+    sellerId: "local_seller",
+    sellerName: "판매자",
   };
 }
 

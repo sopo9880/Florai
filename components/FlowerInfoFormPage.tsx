@@ -265,7 +265,7 @@ export function FlowerInfoFormPage({
           <div className="grid gap-4 rounded-lg border border-[var(--line)] bg-white p-5 shadow-[var(--shadow)]">
             <h2 className="text-lg font-black">{t.cutSection}</h2>
             <p className="text-sm font-semibold leading-6 text-[var(--muted)]">
-              절화류는 개화 정도, 줄기 신장, 잎 면적을 중심으로 입력합니다. 중결점/경결점, 꽃 상태, 줄기 상태, 손질 상태는 이번 입력폼에서 제외했습니다.
+              절화류는 개화 정도, 줄기 신장, 잎 면적을 중심으로 입력합니다.
             </p>
             <div className="grid gap-4 md:grid-cols-2">
               <Field label={t.stemLengthCm} required helper="절화류는 촬영 시 자를 반드시 함께 놓고 찍어야 길이 추정 안정성이 올라갑니다.">

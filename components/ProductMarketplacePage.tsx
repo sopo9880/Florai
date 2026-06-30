@@ -8,31 +8,37 @@ import { SecondaryButton } from "./SecondaryButton";
 
 const t = {
   eyebrow: "상품 목록",
-  title: "데모 판매 상품 목록",
+  title: "판매 상품 목록",
   description:
-    "현재 상품 목록은 localStorage 기반 데모 저장소입니다. 같은 브라우저에서는 새로고침해도 유지되고, 추후 DB API로 저장소만 교체할 수 있습니다.",
+    "AI 품질 분석을 거쳐 게시된 화훼 상품을 확인하고 구매 요청을 진행할 수 있습니다.",
   emptyTitle: "아직 게시된 상품이 없습니다",
-  emptyBody: "AI 품질 평가를 완료한 뒤 상품 게시하기를 눌러 첫 상품 카드를 만들어 보세요.",
-  newAnalysis: "새 분석 시작하기",
+  emptyBody: "판매자가 상품을 게시하면 이곳에서 확인할 수 있습니다.",
+  newAnalysis: "AI 분석 시작하기",
   back: "처음으로",
-  clear: "데모 목록 비우기",
+  clear: "상품 목록 비우기",
   orders: "구매 내역",
   buy: "구매하기",
   soldOut: "품절",
 };
 
 type ProductMarketplacePageProps = {
+  canAnalyze: boolean;
+  canPurchase: boolean;
   onBack: () => void;
   onNewAnalysis: () => void;
   onPurchase: (listing: ProductListing) => void;
   onViewOrders: () => void;
+  onLoginRequired: () => void;
 };
 
 export function ProductMarketplacePage({
+  canAnalyze,
+  canPurchase,
   onBack,
   onNewAnalysis,
   onPurchase,
   onViewOrders,
+  onLoginRequired,
 }: ProductMarketplacePageProps) {
   const [listings, setListings] = useState<ProductListing[]>([]);
 
@@ -93,7 +99,13 @@ export function ProductMarketplacePage({
             <ProductListingCard
               key={listing.listingId}
               listing={listing}
-              onPurchase={() => onPurchase(listing)}
+              onPurchase={() => {
+                if (!canPurchase) {
+                  onLoginRequired();
+                  return;
+                }
+                onPurchase(listing);
+              }}
             />
           ))}
         </div>
@@ -101,7 +113,11 @@ export function ProductMarketplacePage({
 
       <div className="safe-bottom sticky bottom-0 -mx-4 mt-5 grid gap-3 bg-[linear-gradient(180deg,rgba(255,253,248,0),var(--surface)_22%)] px-4 pt-6 sm:grid-cols-2">
         <SecondaryButton onClick={onBack}>{t.back}</SecondaryButton>
-        <PrimaryButton onClick={onNewAnalysis}>{t.newAnalysis}</PrimaryButton>
+        {canAnalyze ? (
+          <PrimaryButton onClick={onNewAnalysis}>{t.newAnalysis}</PrimaryButton>
+        ) : (
+          <PrimaryButton onClick={onViewOrders}>{t.orders}</PrimaryButton>
+        )}
       </div>
     </section>
   );

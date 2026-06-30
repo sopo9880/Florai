@@ -2,10 +2,10 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import {
-  getListingStorageModeLabel,
   createProductListingDefaults,
   productListingRepository,
 } from "@/services/productListingRepository";
+import type { AuthUser } from "@/types/auth";
 import type {
   AnalysisResult,
   CapturedImage,
@@ -27,13 +27,13 @@ const t = {
   eyebrow: "상품 게시",
   title: "AI 평가 결과로 판매 상품 초안을 만들어요",
   description:
-    "로그인과 DB는 아직 붙이지 않고, 데모 단계에서는 브라우저 localStorage에 상품 카드를 저장합니다. 나중에 같은 JSON을 DB API로 보내는 구조로 확장할 수 있습니다.",
+    "AI 품질 분석 결과를 기반으로 상품 정보를 자동 채우고, 판매자가 가격과 수량을 확정합니다.",
   aiSnapshot: "AI 판정 스냅샷",
   saleInfo: "판매 정보 입력",
   preview: "게시 미리보기",
   warningTitle: "비정상 판정 상품입니다",
   warningBody:
-    "데모에서는 게시할 수 있지만, 실제 서비스에서는 판매자 확인 또는 관리자 승인 단계가 필요합니다.",
+    "품질 확인이 필요한 상품입니다. 게시 전 실제 상태를 다시 확인해 주세요.",
   publish: "상품 게시하기",
   back: "결과로 돌아가기",
   viewListings: "상품 목록 보기",
@@ -43,6 +43,7 @@ type ProductListingFormPageProps = {
   result: AnalysisResult;
   form: FlowerInfoForm;
   capturedImages: CapturedImage[];
+  seller: AuthUser | null;
   onBack: () => void;
   onPublished: (listing: ProductListing) => void;
   onViewListings: () => void;
@@ -52,6 +53,7 @@ export function ProductListingFormPage({
   result,
   form,
   capturedImages,
+  seller,
   onBack,
   onPublished,
   onViewListings,
@@ -93,6 +95,7 @@ export function ProductListingFormPage({
     const listing = productListingRepository.create({
       source: { result, form, capturedImages },
       fields,
+      seller,
     });
 
     onPublished(listing);
@@ -123,8 +126,7 @@ export function ProductListingFormPage({
                 {form.cultivarClassName || form.item}
               </p>
               <p className="mt-1 text-xs font-semibold text-[var(--muted)]">
-                {getListingStorageModeLabel()} · 판매자: 데모 판매자 · 이미지{" "}
-                {capturedImages.length}장
+                판매자: {seller?.name || "판매자"} · 이미지 {capturedImages.length}장
               </p>
             </div>
             {capturedImages.length > 1 && (

@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { buildCaptureGuide } from "@/constants/captureGuides";
+import { AuthPage } from "@/components/AuthPage";
 import { CameraCapturePage } from "@/components/CameraCapturePage";
 import { CaptureGuidePage } from "@/components/CaptureGuidePage";
 import { FlowerInfoFormPage } from "@/components/FlowerInfoFormPage";
 import { Header } from "@/components/Header";
 import { LandingPage } from "@/components/LandingPage";
 import { LoadingPage } from "@/components/LoadingPage";
+import { MyPage } from "@/components/MyPage";
 import { ProductListingFormPage } from "@/components/ProductListingFormPage";
 import { ProductMarketplacePage } from "@/components/ProductMarketplacePage";
 import { ProductPublishCompletePage } from "@/components/ProductPublishCompletePage";
@@ -15,7 +17,10 @@ import { ProductPurchasePage } from "@/components/ProductPurchasePage";
 import { ProductPurchaseCompletePage } from "@/components/ProductPurchaseCompletePage";
 import { PurchaseOrderHistoryPage } from "@/components/PurchaseOrderHistoryPage";
 import { ResultReportPage } from "@/components/ResultReportPage";
+import { SellerSidebar } from "@/components/SellerSidebar";
+import { authRepository } from "@/services/authRepository";
 import { requestFlowerAnalysis } from "@/services/flowerAnalysisApi";
+import type { AuthUser, AuthUserRole } from "@/types/auth";
 import type {
   AnalysisResult,
   CapturedImage,
@@ -26,6 +31,9 @@ import type { PurchaseOrder } from "@/types/purchaseOrder";
 
 type Step =
   | "landing"
+  | "login"
+  | "signup"
+  | "mypage"
   | "form"
   | "guide"
   | "camera"
@@ -63,10 +71,13 @@ const initialForm: FlowerInfoForm = {
 };
 
 const analysisFailureMessage =
-  "분석 요청에 실패했습니다. Render 서버 또는 모델 서버 상태를 확인한 뒤 다시 시도해 주세요.";
+  "분석 요청에 실패했습니다. 서버 또는 모델 상태를 확인한 뒤 다시 시도해 주세요.";
 
 export default function Home() {
   const [step, setStep] = useState<Step>("landing");
+  const [authDefaultRole, setAuthDefaultRole] = useState<AuthUserRole>("buyer");
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [capturedImages, setCapturedImages] = useState<CapturedImage[]>([]);
   const [form, setForm] = useState<FlowerInfoForm>(initialForm);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -75,27 +86,76 @@ export default function Home() {
   const [selectedListing, setSelectedListing] = useState<ProductListing | null>(null);
   const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrder | null>(null);
 
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setCurrentUser(authRepository.getCurrentUser());
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  const isSeller = currentUser?.role === "seller";
+  const canPurchase = Boolean(currentUser);
+
   const clearAnalysisState = () => {
     setCapturedImages([]);
     setForm(initialForm);
     setResult(null);
     setErrorMessage("");
     setPublishedListing(null);
-    setSelectedListing(null);
     setPurchaseOrder(null);
   };
 
   const startNewAnalysis = () => {
+    if (!isSeller) {
+      setAuthDefaultRole("seller");
+      setStep(currentUser ? "marketplace" : "signup");
+      return;
+    }
     clearAnalysisState();
     setStep("form");
   };
 
   const resetToLanding = () => {
     clearAnalysisState();
+    setSelectedListing(null);
     setStep("landing");
   };
 
+  const openLogin = () => {
+    setAuthDefaultRole("buyer");
+    setStep("login");
+  };
+
+  const openSignup = (role: AuthUserRole = "buyer") => {
+    setAuthDefaultRole(role);
+    setStep("signup");
+  };
+
+  const authenticated = (user: AuthUser) => {
+    setCurrentUser(user);
+    if (selectedListing) {
+      setStep("purchase");
+      return;
+    }
+    setStep("landing");
+  };
+
+  const logout = () => {
+    authRepository.logout();
+    setCurrentUser(null);
+    setSidebarOpen(false);
+    clearAnalysisState();
+    setSelectedListing(null);
+    setStep("landing");
+  };
+
+  const go = (nextStep: Step) => {
+    setSidebarOpen(false);
+    setStep(nextStep);
+  };
+
   const submitForm = (nextForm: FlowerInfoForm) => {
+    if (!isSeller) return;
     setForm(nextForm);
     setCapturedImages([]);
     setResult(null);
@@ -104,7 +164,7 @@ export default function Home() {
   };
 
   const submitAnalysis = async () => {
-    if (capturedImages.length === 0) return;
+    if (!isSeller || capturedImages.length === 0) return;
 
     setResult(null);
     setErrorMessage("");
@@ -128,14 +188,63 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[var(--surface)] text-[var(--ink)]">
-      <Header />
-      {step === "landing" && (
-        <LandingPage
-          onStart={() => setStep("form")}
-          onViewListings={() => setStep("marketplace")}
+      <Header
+        user={currentUser}
+        onLogin={openLogin}
+        onSignup={() => openSignup("buyer")}
+        onLogout={logout}
+        onMyPage={() => go(currentUser ? "mypage" : "login")}
+        onToggleSidebar={() => setSidebarOpen((open) => !open)}
+      />
+
+      {currentUser?.role === "seller" && (
+        <SellerSidebar
+          user={currentUser}
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          onHome={() => go("landing")}
+          onAnalyze={startNewAnalysis}
+          onMarketplace={() => go("marketplace")}
+          onOrders={() => go("orders")}
+          onMyPage={() => go("mypage")}
+          onLogout={logout}
         />
       )}
-      {step === "form" && (
+
+      {step === "landing" && (
+        <LandingPage
+          user={currentUser}
+          onStart={startNewAnalysis}
+          onViewListings={() => setStep("marketplace")}
+          onViewOrders={() => setStep(currentUser ? "orders" : "login")}
+          onLogin={openLogin}
+          onBuyerSignup={() => openSignup("buyer")}
+          onSellerSignup={() => openSignup("seller")}
+        />
+      )}
+
+      {(step === "login" || step === "signup") && (
+        <AuthPage
+          mode={step}
+          defaultRole={authDefaultRole}
+          onModeChange={(mode) => setStep(mode)}
+          onAuthenticated={authenticated}
+          onBack={resetToLanding}
+        />
+      )}
+
+      {step === "mypage" && currentUser && (
+        <MyPage
+          user={currentUser}
+          onBack={resetToLanding}
+          onAnalyze={startNewAnalysis}
+          onMarketplace={() => setStep("marketplace")}
+          onOrders={() => setStep("orders")}
+          onLogout={logout}
+        />
+      )}
+
+      {step === "form" && isSeller && (
         <FlowerInfoFormPage
           form={form}
           errorMessage={errorMessage}
@@ -143,14 +252,14 @@ export default function Home() {
           onSubmit={submitForm}
         />
       )}
-      {step === "guide" && (
+      {step === "guide" && isSeller && (
         <CaptureGuidePage
           form={form}
           onBack={() => setStep("form")}
           onStartCapture={() => setStep("camera")}
         />
       )}
-      {step === "camera" && (
+      {step === "camera" && isSeller && (
         <CameraCapturePage
           form={form}
           capturedImages={capturedImages}
@@ -163,7 +272,7 @@ export default function Home() {
         />
       )}
       {step === "loading" && <LoadingPage />}
-      {step === "result" && result && capturedImages.length > 0 && (
+      {step === "result" && isSeller && result && capturedImages.length > 0 && (
         <ResultReportPage
           result={result}
           form={form}
@@ -178,11 +287,12 @@ export default function Home() {
           onPublish={() => setStep("listing")}
         />
       )}
-      {step === "listing" && result && capturedImages.length > 0 && (
+      {step === "listing" && isSeller && result && capturedImages.length > 0 && (
         <ProductListingFormPage
           result={result}
           form={form}
           capturedImages={capturedImages}
+          seller={currentUser}
           onBack={() => setStep("result")}
           onPublished={(listing) => {
             setPublishedListing(listing);
@@ -200,18 +310,25 @@ export default function Home() {
       )}
       {step === "marketplace" && (
         <ProductMarketplacePage
+          canAnalyze={isSeller}
+          canPurchase={canPurchase}
           onBack={resetToLanding}
           onNewAnalysis={startNewAnalysis}
           onPurchase={(listing) => {
             setSelectedListing(listing);
             setStep("purchase");
           }}
-          onViewOrders={() => setStep("orders")}
+          onViewOrders={() => setStep(currentUser ? "orders" : "login")}
+          onLoginRequired={() => {
+            setAuthDefaultRole("buyer");
+            setStep("login");
+          }}
         />
       )}
-      {step === "purchase" && selectedListing && (
+      {step === "purchase" && selectedListing && currentUser && (
         <ProductPurchasePage
           listing={selectedListing}
+          buyer={currentUser}
           onBack={() => setStep("marketplace")}
           onPurchased={(order) => {
             setPurchaseOrder(order);
@@ -229,6 +346,8 @@ export default function Home() {
       )}
       {step === "orders" && (
         <PurchaseOrderHistoryPage
+          user={currentUser}
+          canAnalyze={isSeller}
           onViewMarketplace={() => setStep("marketplace")}
           onNewAnalysis={startNewAnalysis}
         />

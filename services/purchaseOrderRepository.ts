@@ -8,7 +8,7 @@ import type {
 import type { ProductListing } from "@/types/productListing";
 
 const LOCAL_STORAGE_KEY = "florai:demo:purchases:v1";
-const DEMO_BUYER_ID = "demo_buyer";
+const MAX_LOCAL_ORDERS = 50;
 
 export const purchaseOrderRepository: PurchaseOrderRepository = {
   create(input) {
@@ -35,10 +35,11 @@ export const purchaseOrderRepository: PurchaseOrderRepository = {
 
 export function createPurchaseDefaults(
   listing: ProductListing,
+  buyer?: CreatePurchaseOrderInput["buyer"],
 ): PurchaseOrderFields {
   return {
-    buyerName: "",
-    buyerPhone: "",
+    buyerName: buyer?.name ?? "",
+    buyerPhone: buyer?.phone ?? "",
     quantity: "1",
     desiredDate: listing.sale.availableFrom || new Date().toISOString().slice(0, 10),
     deliveryMethod: listing.sale.deliveryMethod,
@@ -48,12 +49,13 @@ export function createPurchaseDefaults(
 }
 
 export function getPurchaseStorageModeLabel() {
-  return "localStorage 데모 주문 저장";
+  return "브라우저 주문 저장";
 }
 
 function buildPurchaseOrder({
   listing,
   fields,
+  buyer,
 }: CreatePurchaseOrderInput): PurchaseOrder {
   const now = new Date().toISOString();
   const quantity = Number(fields.quantity || 0);
@@ -68,9 +70,9 @@ function buildPurchaseOrder({
     createdAt: now,
     updatedAt: now,
     buyer: {
-      buyerId: DEMO_BUYER_ID,
-      buyerName: fields.buyerName.trim(),
-      buyerPhone: fields.buyerPhone.trim(),
+      buyerId: buyer?.userId ?? "local_buyer",
+      buyerName: fields.buyerName.trim() || buyer?.name || "구매자",
+      buyerPhone: fields.buyerPhone.trim() || buyer?.phone || "",
     },
     seller: listing.seller,
     listingId: listing.listingId,
@@ -91,13 +93,13 @@ function buildPurchaseOrder({
       method: fields.paymentMethod,
       status: "demo_pending",
     },
-    image: listing.image,
     quality: listing.quality,
     memo: {
       buyerMemo: fields.buyerMemo.trim(),
     },
     source: {
-      listingSnapshot: listing,
+      listingId: listing.listingId,
+      listingStorageMode: listing.storageMode,
     },
   };
 }
@@ -111,7 +113,7 @@ function readOrders(): PurchaseOrder[] {
   try {
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(isPurchaseOrder);
+    return parsed.filter(isPurchaseOrder).map(sanitizePurchaseOrder);
   } catch {
     return [];
   }
@@ -119,7 +121,57 @@ function readOrders(): PurchaseOrder[] {
 
 function writeOrders(orders: PurchaseOrder[]) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(orders));
+
+  const compactOrders = orders
+    .filter(isPurchaseOrder)
+    .map(sanitizePurchaseOrder)
+    .slice(0, MAX_LOCAL_ORDERS);
+
+  try {
+    window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(compactOrders));
+  } catch (error) {
+    if (isQuotaExceededError(error)) {
+      window.localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify(compactOrders.slice(0, 10)),
+      );
+      return;
+    }
+    throw error;
+  }
+}
+
+function sanitizePurchaseOrder(order: PurchaseOrder): PurchaseOrder {
+  const legacySource = order.source as
+    | PurchaseOrder["source"]
+    | { listingSnapshot?: ProductListing; listingId?: string; listingStorageMode?: ProductListing["storageMode"] }
+    | undefined;
+
+  const listingSnapshot = legacySource && "listingSnapshot" in legacySource
+    ? legacySource.listingSnapshot
+    : undefined;
+
+  return {
+    schemaVersion: "florai.purchase.v1",
+    orderId: order.orderId,
+    status: order.status ?? "requested",
+    storageMode: "local_demo",
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt ?? order.createdAt,
+    buyer: order.buyer,
+    seller: order.seller,
+    listingId: order.listingId,
+    product: order.product,
+    item: order.item,
+    fulfillment: order.fulfillment,
+    payment: order.payment,
+    quality: order.quality,
+    memo: order.memo ?? { buyerMemo: "" },
+    source: {
+      listingId: order.listingId,
+      listingStorageMode: listingSnapshot?.storageMode ?? legacySource?.listingStorageMode ?? "local_demo",
+    },
+  };
 }
 
 function isPurchaseOrder(value: unknown): value is PurchaseOrder {
@@ -128,6 +180,13 @@ function isPurchaseOrder(value: unknown): value is PurchaseOrder {
   return (
     candidate.schemaVersion === "florai.purchase.v1" &&
     typeof candidate.orderId === "string"
+  );
+}
+
+function isQuotaExceededError(error: unknown) {
+  return (
+    error instanceof DOMException &&
+    (error.name === "QuotaExceededError" || error.code === 22)
   );
 }
 

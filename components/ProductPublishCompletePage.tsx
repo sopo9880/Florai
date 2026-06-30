@@ -8,7 +8,7 @@ const t = {
   eyebrow: "게시 완료",
   title: "상품 카드가 생성되었습니다",
   description:
-    "현재 데모에서는 상품 정보가 이 브라우저의 localStorage에 저장됩니다. 나중에는 동일한 listing JSON을 DB 저장 API로 보내면 됩니다.",
+    "상품 목록에 판매 카드가 게시되었습니다. 구매자는 상품 목록에서 구매 요청을 진행할 수 있습니다.",
   newAnalysis: "새 상품 분석하기",
   marketplace: "상품 목록 보기",
 };

@@ -1,3 +1,4 @@
+import type { AuthUser } from "./auth";
 import type { ProductDeliveryMethod, ProductListing } from "./productListing";
 
 export type PurchaseOrderStatus = "requested" | "cancelled";
@@ -46,19 +47,20 @@ export type PurchaseOrder = {
     method: PurchasePaymentMethod;
     status: "demo_pending";
   };
-  image: ProductListing["image"];
   quality: ProductListing["quality"];
   memo: {
     buyerMemo: string;
   };
   source: {
-    listingSnapshot: ProductListing;
+    listingId: string;
+    listingStorageMode: ProductListing["storageMode"];
   };
 };
 
 export type CreatePurchaseOrderInput = {
   listing: ProductListing;
   fields: PurchaseOrderFields;
+  buyer?: AuthUser | null;
 };
 
 export type PurchaseOrderRepository = {

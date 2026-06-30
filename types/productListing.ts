@@ -1,3 +1,4 @@
+import type { AuthUser } from "./auth";
 import type { AnalysisResult, CapturedImage, FlowerInfoForm } from "./flower";
 
 export type ProductListingStatus = "published" | "hidden";
@@ -91,6 +92,7 @@ export type ProductListingSource = {
 export type CreateProductListingInput = {
   source: ProductListingSource;
   fields: ProductListingDraftFields;
+  seller?: AuthUser | null;
 };
 
 export type ProductListingRepository = {

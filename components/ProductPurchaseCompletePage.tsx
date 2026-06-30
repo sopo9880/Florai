@@ -1,14 +1,16 @@
 "use client";
 
+import { productListingRepository } from "@/services/productListingRepository";
+import type { ProductListingImage } from "@/types/productListing";
 import type { PurchaseOrder } from "@/types/purchaseOrder";
 import { PrimaryButton } from "./PrimaryButton";
 import { SecondaryButton } from "./SecondaryButton";
 
 const t = {
   eyebrow: "구매 요청 완료",
-  title: "데모 주문이 생성되었습니다",
+  title: "구매 요청이 생성되었습니다",
   description:
-    "현재 데모에서는 결제 없이 구매 요청 내역만 localStorage에 저장합니다. 실제 서비스에서는 주문 DB, 결제 상태, 판매자 승인 단계로 확장할 수 있습니다.",
+    "구매 요청이 접수되었습니다. 판매자 확인 후 수령 방식과 결제 방식이 확정됩니다.",
   marketplace: "상품 목록 보기",
   orders: "구매 내역 보기",
 };
@@ -24,6 +26,8 @@ export function ProductPurchaseCompletePage({
   onViewMarketplace,
   onViewOrders,
 }: ProductPurchaseCompletePageProps) {
+  const image = getOrderDisplayImage(order);
+
   return (
     <section className="florai-shell min-h-[calc(100svh-4rem)] py-8">
       <div className="mx-auto max-w-3xl">
@@ -36,11 +40,20 @@ export function ProductPurchaseCompletePage({
         </p>
 
         <article className="mt-6 overflow-hidden rounded-xl border border-white bg-white shadow-[var(--shadow)]">
-          <img
-            src={order.image.dataUrl}
-            alt={`${order.product.title} 구매 상품 이미지`}
-            className="aspect-[16/10] w-full object-cover"
-          />
+          {image ? (
+            <img
+              src={image.dataUrl}
+              alt={`${order.product.title} 구매 상품 이미지`}
+              className="aspect-[16/10] w-full object-cover"
+            />
+          ) : (
+            <div className="flex aspect-[16/10] items-center justify-center bg-[linear-gradient(135deg,var(--green),var(--pink-soft))] p-8 text-center">
+              <div>
+                <p className="text-sm font-black text-[var(--green-strong)]">Florai 주문 상품</p>
+                <p className="mt-2 text-2xl font-black text-[var(--ink)]">{order.product.title}</p>
+              </div>
+            </div>
+          )}
           <div className="p-5">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-[var(--green)] px-3 py-1 text-xs font-black text-[var(--green-strong)]">
@@ -48,9 +61,6 @@ export function ProductPurchaseCompletePage({
               </span>
               <span className="rounded-full bg-[var(--surface)] px-3 py-1 text-xs font-black text-[var(--muted)]">
                 {order.payment.method}
-              </span>
-              <span className="rounded-full bg-[var(--pink-soft)] px-3 py-1 text-xs font-black text-[#9d4949]">
-                실제 결제 없음
               </span>
             </div>
             <h2 className="mt-4 text-2xl font-black">{order.product.title}</h2>
@@ -85,4 +95,13 @@ function MetaRow({ label, value }: { label: string; value: string }) {
       <dd className="text-right font-semibold text-[var(--muted)]">{value || "-"}</dd>
     </div>
   );
+}
+
+
+function getOrderDisplayImage(order: PurchaseOrder): ProductListingImage | null {
+  const listing = productListingRepository.get(order.listingId);
+  if (listing?.image) return listing.image;
+
+  const legacyImage = (order as unknown as { image?: ProductListingImage }).image;
+  return legacyImage ?? null;
 }
