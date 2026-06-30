@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { CSSProperties, FormEvent, useMemo, useState } from "react";
 import {
   FLOWER_CATEGORY_OPTIONS,
   getCategoryLabel,
@@ -8,7 +8,7 @@ import {
   findFlowerClassByCultivarClassId,
   getCultivarsByItem,
 } from "@/constants/flowerClassList";
-import { findPotSizeByHo, formatPotSize, POT_SIZE_OPTIONS } from "@/constants/potSizes";
+import { findPotSizeByHo, POT_SIZE_OPTIONS } from "@/constants/potSizes";
 import type { CategoryType, FlowerInfoForm } from "@/types/flower";
 import { Field, SelectInput, TextAreaInput, TextInput } from "./InfoInput";
 import { PrimaryButton } from "./PrimaryButton";
@@ -29,6 +29,7 @@ const t = {
   cultivarDisabled: "먼저 품목을 선택해주세요",
   cutSection: "절화류 판별 정보",
   pottedSection: "분화류 판별 정보",
+  cutStemLengthCm: "꽃대 길이(cm)",
   stemLengthCm: "꽃대/줄기 길이(cm)",
   stemPlaceholder: "예: 65",
   bundleCount: "묶음 본수",
@@ -48,9 +49,24 @@ const t = {
   submit: "촬영 가이드 보기",
 };
 
-const floweringStageOptions = ["4/5 개화", "완전 개화", "미개화/과개화", "확인 필요"];
+const floweringStageOptions = ["미개화/과개화", "4/5 개화", "완전 개화", "확인 필요"];
 const floweringStatusOptions = ["꽃 없음", "개화 전", "개화 중", "만개", "시듦"];
-const growthConditionOptions = ["균형 양호", "생육 보통", "웃자람", "왜소", "이상 의심"];
+const growthConditionOptions = ["왜소", "생육 보통", "균형 양호", "웃자람", "이상 의심"];
+
+const cutFlowerBloomProgress: Record<string, number> = {
+  "미개화/과개화": 0.26,
+  "4/5 개화": 0.72,
+  "완전 개화": 1,
+  "확인 필요": 0.48,
+};
+
+const pottedFlowerBloomProgress: Record<string, number> = {
+  "꽃 없음": 0,
+  "개화 전": 0.28,
+  "개화 중": 0.64,
+  "만개": 1,
+  "시듦": 0.74,
+};
 
 function defaultCategoryValues(categoryType: CategoryType) {
   if (categoryType === "potted_plant") {
@@ -265,10 +281,10 @@ export function FlowerInfoFormPage({
           <div className="grid gap-4 rounded-lg border border-[var(--line)] bg-white p-5 shadow-[var(--shadow)]">
             <h2 className="text-lg font-black">{t.cutSection}</h2>
             <p className="text-sm font-semibold leading-6 text-[var(--muted)]">
-              절화류는 개화 정도, 줄기 신장, 잎 면적을 중심으로 입력합니다.
+              절화류는 꽃대 길이, 묶음 본수, 잎 면적과 개화 정도를 중심으로 입력합니다.
             </p>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label={t.stemLengthCm} required helper="절화류는 촬영 시 자를 반드시 함께 놓고 찍어야 길이 추정 안정성이 올라갑니다.">
+            <div className="grid gap-4 lg:grid-cols-3">
+              <Field label={t.cutStemLengthCm} required helper="촬영 시 자를 함께 놓으면 길이 추정 안정성이 올라갑니다.">
                 <TextInput
                   type="number"
                   min="0"
@@ -289,13 +305,6 @@ export function FlowerInfoFormPage({
                   placeholder={t.bundlePlaceholder}
                 />
               </Field>
-              <Field label={t.floweringStage} required>
-                <OptionSelect
-                  value={draft.floweringStage}
-                  options={floweringStageOptions}
-                  onChange={(value) => update("floweringStage", value)}
-                />
-              </Field>
               <Field label={t.leafArea} required helper="정확한 수치가 없으면 대략값을 입력해도 됩니다.">
                 <TextInput
                   value={draft.leafArea}
@@ -305,34 +314,41 @@ export function FlowerInfoFormPage({
                 />
               </Field>
             </div>
+            <StageSlider
+              label={t.floweringStage}
+              value={draft.floweringStage}
+              options={floweringStageOptions}
+              visualKind="cutFlower"
+              size="large"
+              onChange={(value) => update("floweringStage", value)}
+            />
           </div>
         ) : (
           <div className="grid gap-4 rounded-lg border border-[var(--line)] bg-white p-5 shadow-[var(--shadow)]">
             <h2 className="text-lg font-black">{t.pottedSection}</h2>
             <p className="text-sm font-semibold leading-6 text-[var(--muted)]">
-              분화류는 화분 규격, 잎 면적, 줄기 길이, 전체 생육 상태를 중심으로 입력합니다. 화분은 이미지 내 기준 물체로 활용됩니다.
+              분화류는 화분 호수, 잎 면적, 줄기 길이와 생육·개화 상태를 중심으로 입력합니다.
             </p>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label={t.potSize} required helper="화분 규격은 이미지 내 크기 기준 물체로 사용됩니다.">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1fr)]">
+              <Field
+                label={t.potSize}
+                required
+                helper={selectedPotSize ? `규격 ${selectedPotSize.topDiameterCm}/${selectedPotSize.bottomDiameterCm}/${selectedPotSize.heightCm}cm` : "호수만 간단히 선택해주세요."}
+              >
                 <SelectInput
                   value={draft.potSizeHo}
                   required
                   onChange={(event) => handlePotChange(event.target.value)}
                 >
-                  <option value="">화분 호수를 선택해주세요</option>
+                  <option value="">화분 호수</option>
                   {POT_SIZE_OPTIONS.map((option) => (
                     <option key={option.ho} value={option.ho}>
-                      {formatPotSize(option)}
+                      {option.ho}호
                     </option>
                   ))}
                 </SelectInput>
               </Field>
-              <div className="rounded-lg border border-[rgba(128,191,142,0.35)] bg-[rgba(128,191,142,0.1)] px-4 py-3 text-sm font-bold leading-6 text-[var(--green-strong)]">
-                {selectedPotSize
-                  ? `서버 전송: 윗지름 ${selectedPotSize.topDiameterCm}cm, 밑지름 ${selectedPotSize.bottomDiameterCm}cm, 높이 ${selectedPotSize.heightCm}cm`
-                  : "화분 호수를 선택하면 실제 cm 규격이 자동 매핑됩니다."}
-              </div>
-              <Field label={t.leafArea} required helper="잎 상태 대신 잎 면적 정보를 전달합니다.">
+              <Field label={t.leafArea} required helper="잎 면적 정보를 전달합니다.">
                 <TextInput
                   value={draft.leafArea}
                   required
@@ -340,7 +356,7 @@ export function FlowerInfoFormPage({
                   placeholder={t.leafAreaPlaceholder}
                 />
               </Field>
-              <Field label={t.pottedStemLengthCm} required>
+              <Field label={t.pottedStemLengthCm} required helper={selectedPotSize ? `화분 ${selectedPotSize.ho}호 기준` : undefined}>
                 <TextInput
                   type="number"
                   min="0"
@@ -351,20 +367,22 @@ export function FlowerInfoFormPage({
                   placeholder={t.pottedStemLengthPlaceholder}
                 />
               </Field>
-              <Field label={t.floweringStatus} required>
-                <OptionSelect
-                  value={draft.floweringStatus}
-                  options={floweringStatusOptions}
-                  onChange={(value) => update("floweringStatus", value)}
-                />
-              </Field>
-              <Field label={t.growthCondition} required>
-                <OptionSelect
-                  value={draft.growthCondition}
-                  options={growthConditionOptions}
-                  onChange={(value) => update("growthCondition", value)}
-                />
-              </Field>
+            </div>
+            <div className="grid gap-4 xl:grid-cols-2">
+              <StageSlider
+                label={t.growthCondition}
+                value={draft.growthCondition}
+                options={growthConditionOptions}
+                visualKind="growth"
+                onChange={(value) => update("growthCondition", value)}
+              />
+              <StageSlider
+                label={t.floweringStatus}
+                value={draft.floweringStatus}
+                options={floweringStatusOptions}
+                visualKind="pottedFlower"
+                onChange={(value) => update("floweringStatus", value)}
+              />
             </div>
           </div>
         )}
@@ -400,26 +418,192 @@ export function FlowerInfoFormPage({
   );
 }
 
-function OptionSelect({
-  value,
-  options,
-  onChange,
-}: {
+type StageVisualKind = "cutFlower" | "pottedFlower" | "growth";
+
+type StageSliderProps = {
+  label: string;
   value: string;
   options: string[];
+  visualKind: StageVisualKind;
+  size?: "normal" | "large";
   onChange: (value: string) => void;
-}) {
+};
+
+function StageSlider({
+  label,
+  value,
+  options,
+  visualKind,
+  size = "normal",
+  onChange,
+}: StageSliderProps) {
+  const selectedIndex = Math.max(0, options.indexOf(value));
+  const safeIndex = selectedIndex >= 0 ? selectedIndex : 0;
+  const progress = options.length > 1 ? (safeIndex / (options.length - 1)) * 100 : 0;
+  const inputId = `${label.replace(/\s/g, "-")}-stage-slider`;
+
   return (
-    <SelectInput
-      value={value}
-      required
-      onChange={(event) => onChange(event.target.value)}
+    <div
+      className={`stage-slider-card ${visualKind === "cutFlower" ? "is-cut-slider" : "is-potted-slider"} ${size === "large" ? "is-large" : ""}`}
+      style={{ "--stage-count": options.length } as CSSProperties}
     >
-      {options.map((option) => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
-    </SelectInput>
+      <div className="stage-slider-visual-wrap">
+        <div>
+          <p className="stage-slider-label">{label}</p>
+          <p className="stage-slider-value">{options[safeIndex]}</p>
+        </div>
+        <StageVisual kind={visualKind} value={options[safeIndex]} index={safeIndex} total={options.length} />
+      </div>
+
+      <div className="stage-slider-axis">
+        <div className="stage-slider-axis-inner">
+          <label className="sr-only" htmlFor={inputId}>{label}</label>
+          <input
+            id={inputId}
+            className="stage-slider-range"
+            type="range"
+            min={0}
+            max={Math.max(0, options.length - 1)}
+            step={1}
+            value={safeIndex}
+            onChange={(event) => onChange(options[Number(event.target.value)] ?? options[0] ?? "")}
+            style={{
+              background: `linear-gradient(90deg, rgba(52,123,84,0.88) 0 ${progress}%, rgba(221,232,223,0.95) ${progress}% 100%)`,
+            }}
+          />
+
+          <div className="stage-slider-ticks" aria-hidden="true">
+            {options.map((option, index) => (
+              <span
+                key={option}
+                className={index <= safeIndex ? "is-active" : undefined}
+                style={{ "--stage-left": `${options.length > 1 ? (index / (options.length - 1)) * 100 : 0}%` } as CSSProperties}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="stage-slider-options">
+          {options.map((option, index) => (
+            <button
+              type="button"
+              key={option}
+              className={index === safeIndex ? "is-selected" : undefined}
+              style={{ "--stage-left": `${options.length > 1 ? (index / (options.length - 1)) * 100 : 0}%` } as CSSProperties}
+              onClick={() => onChange(option)}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
   );
+}
+
+function StageVisual({
+  kind,
+  value,
+  index,
+  total,
+}: {
+  kind: StageVisualKind;
+  value: string;
+  index: number;
+  total: number;
+}) {
+  if (kind === "growth") {
+    return <GrowthVisual value={value} index={index} />;
+  }
+
+  const progress = kind === "cutFlower"
+    ? cutFlowerBloomProgress[value] ?? normalizedProgress(index, total)
+    : pottedFlowerBloomProgress[value] ?? normalizedProgress(index, total);
+  const isWilted = value === "시듦" || value === "확인 필요";
+
+  return (
+    <div className={`stage-flower-visual ${kind === "pottedFlower" ? "is-potted" : "is-cut"} ${isWilted ? "is-wilted" : ""}`}>
+      {kind === "pottedFlower" ? <div className="stage-pot" /> : <div className="stage-ruler" />}
+      <div className="stage-stem" />
+      <div className="stage-leaf stage-leaf-left" />
+      <div className="stage-leaf stage-leaf-right" />
+      <div
+        className="stage-flower-head"
+        style={{
+          transform: `translate(-50%, -50%) scale(${0.72 + progress * 0.24})`,
+        }}
+      >
+        {Array.from({ length: 8 }).map((_, petalIndex) => {
+          const angle = petalIndex * 45;
+          const lift = -4 - progress * 9;
+          const petalScale = 0.56 + progress * 0.48;
+          const tilt = isWilted ? 10 : 0;
+
+          return (
+            <span
+              key={petalIndex}
+              style={{
+                opacity: 0.38 + progress * 0.56,
+                transform: `rotate(${angle + tilt}deg) translateY(${lift}px) scale(${petalScale})`,
+              }}
+            />
+          );
+        })}
+      </div>
+      <div className="stage-flower-core" />
+    </div>
+  );
+}
+
+function GrowthVisual({ value, index }: { value: string; index: number }) {
+  const preset = getGrowthPreset(value, index);
+  const style = {
+    "--growth-height": `${preset.height}rem`,
+    "--growth-leaf-scale": preset.leafScale,
+    "--growth-lean": `${preset.lean}deg`,
+    "--growth-opacity": preset.opacity,
+  } as CSSProperties;
+
+  return (
+    <div className={`stage-growth-visual ${preset.isConcern ? "is-concern" : ""}`} style={style}>
+      <div className="stage-growth-pot" />
+      <div className="stage-growth-stem" />
+      <div className="stage-growth-leaf left top" />
+      <div className="stage-growth-leaf left bottom" />
+      <div className="stage-growth-leaf right top" />
+      <div className="stage-growth-leaf right bottom" />
+    </div>
+  );
+}
+
+function normalizedProgress(index: number, total: number) {
+  if (total <= 1) return 1;
+  return index / (total - 1);
+}
+
+function getGrowthPreset(value: string, index: number) {
+  if (value === "균형 양호") {
+    return { height: 4.9, leafScale: 1.04, lean: 0, opacity: 1, isConcern: false };
+  }
+  if (value === "생육 보통") {
+    return { height: 4.1, leafScale: 0.88, lean: -2, opacity: 0.88, isConcern: false };
+  }
+  if (value === "웃자람") {
+    return { height: 6.1, leafScale: 0.72, lean: 4, opacity: 0.82, isConcern: false };
+  }
+  if (value === "왜소") {
+    return { height: 3.25, leafScale: 0.66, lean: -1, opacity: 0.78, isConcern: false };
+  }
+  if (value === "이상 의심") {
+    return { height: 3.8, leafScale: 0.62, lean: 9, opacity: 0.58, isConcern: true };
+  }
+
+  const progress = normalizedProgress(index, growthConditionOptions.length);
+  return {
+    height: 3.5 + progress * 2,
+    leafScale: 0.7 + progress * 0.25,
+    lean: 0,
+    opacity: 0.85,
+    isConcern: false,
+  };
 }

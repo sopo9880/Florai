@@ -338,3 +338,544 @@ textarea:focus-visible {
   line-height: 1.5;
   box-shadow: 0 12px 26px rgba(31, 48, 41, 0.09);
 }
+
+.stage-slider-card {
+  --stage-edge-pad: 3.25rem;
+  --stage-label-width: clamp(4rem, calc(100% / var(--stage-count) + 0.95rem), 6rem);
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(221, 232, 223, 0.96);
+  background:
+    radial-gradient(circle at top right, rgba(244, 166, 166, 0.18), transparent 16rem),
+    linear-gradient(135deg, rgba(255, 253, 248, 0.98), rgba(244, 251, 241, 0.92));
+  padding: 1rem;
+  box-shadow: 0 16px 34px rgba(31, 48, 41, 0.08);
+}
+
+.stage-slider-card.is-large {
+  --stage-edge-pad: 3.55rem;
+  --stage-label-width: clamp(4.25rem, calc(100% / var(--stage-count) + 0.85rem), 6.15rem);
+  padding: 1.15rem;
+}
+
+.stage-slider-card.is-potted-slider {
+  --stage-edge-pad: 3.05rem;
+  --stage-label-width: clamp(3.9rem, calc(100% / var(--stage-count) + 0.72rem), 5.55rem);
+}
+
+.stage-slider-visual-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8.5rem;
+  gap: 1rem;
+  align-items: center;
+  min-height: 8.25rem;
+}
+
+.stage-slider-card.is-large .stage-slider-visual-wrap {
+  grid-template-columns: minmax(0, 1fr) 12rem;
+  min-height: 11.35rem;
+}
+
+.stage-slider-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.stage-slider-value {
+  margin-top: 0.45rem;
+  color: var(--ink);
+  font-size: 1.55rem;
+  font-weight: 1000;
+  letter-spacing: -0.04em;
+}
+
+.stage-slider-card.is-cut-slider .stage-slider-value {
+  font-size: 1.72rem;
+}
+
+.stage-slider-axis {
+  padding-inline: var(--stage-edge-pad);
+}
+
+.stage-slider-axis-inner {
+  position: relative;
+  height: 1.75rem;
+}
+
+.stage-slider-range {
+  display: block;
+  width: 100%;
+  height: 0.62rem;
+  margin: 0.56rem 0 0;
+  border-radius: 999px;
+  appearance: none;
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+
+.stage-slider-range::-webkit-slider-runnable-track {
+  height: 0.62rem;
+  border-radius: 999px;
+}
+
+.stage-slider-range::-webkit-slider-thumb {
+  width: 1.72rem;
+  height: 1.72rem;
+  margin-top: -0.55rem;
+  border: 0.28rem solid #ffffff;
+  border-radius: 999px;
+  appearance: none;
+  background: var(--green-strong);
+  box-shadow: 0 0.55rem 1.2rem rgba(52, 123, 84, 0.28);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.stage-slider-range:active::-webkit-slider-thumb {
+  transform: scale(1.08);
+  box-shadow: 0 0.65rem 1.4rem rgba(52, 123, 84, 0.34);
+}
+
+.stage-slider-range::-moz-range-track {
+  height: 0.62rem;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.stage-slider-range::-moz-range-thumb {
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 0.28rem solid #ffffff;
+  border-radius: 999px;
+  background: var(--green-strong);
+  box-shadow: 0 0.55rem 1.2rem rgba(52, 123, 84, 0.28);
+}
+
+.stage-slider-ticks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.stage-slider-ticks span {
+  position: absolute;
+  left: var(--stage-left);
+  top: 0.86rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: rgba(99, 113, 104, 0.24);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0.18rem 0.45rem rgba(31, 48, 41, 0.12);
+  transition: transform 150ms ease, background 150ms ease;
+}
+
+.stage-slider-ticks span.is-active {
+  background: var(--green-strong);
+  transform: translate(-50%, -50%) scale(1.16);
+}
+
+.stage-slider-options {
+  position: relative;
+  height: 3rem;
+  margin-top: 0.28rem;
+}
+
+.stage-slider-options button {
+  position: absolute;
+  left: var(--stage-left);
+  top: 0;
+  display: inline-flex;
+  width: var(--stage-label-width);
+  min-height: 2.35rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(221, 232, 223, 0.98);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1.15;
+  padding: 0.34rem 0.42rem;
+  text-align: center;
+  word-break: keep-all;
+  transform: translateX(-50%);
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.stage-slider-card.is-cut-slider .stage-slider-options button {
+  min-height: 2.12rem;
+  font-size: 0.66rem;
+  letter-spacing: -0.03em;
+}
+
+.stage-slider-card.is-potted-slider .stage-slider-options button {
+  font-size: 0.67rem;
+  letter-spacing: -0.035em;
+}
+
+.stage-slider-options button:hover {
+  transform: translateX(-50%) translateY(-1px);
+  border-color: rgba(52, 123, 84, 0.36);
+}
+
+.stage-slider-options button.is-selected {
+  border-color: rgba(52, 123, 84, 0.55);
+  background: rgba(52, 123, 84, 0.1);
+  color: var(--green-strong);
+  box-shadow: inset 0 0 0 1px rgba(52, 123, 84, 0.14);
+}
+
+.stage-flower-visual,
+.stage-growth-visual {
+  position: relative;
+  width: 8.25rem;
+  height: 7.75rem;
+  overflow: hidden;
+  border-radius: 1.15rem;
+  background:
+    linear-gradient(rgba(52, 123, 84, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 123, 84, 0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(251, 246, 235, 0.66));
+  background-size: 1.35rem 1.35rem, 1.35rem 1.35rem, auto;
+  box-shadow: inset 0 0 0 1px rgba(221, 232, 223, 0.85);
+}
+
+.stage-slider-card.is-large .stage-flower-visual {
+  width: 11.65rem;
+  height: 10.6rem;
+  border-radius: 1.4rem;
+  background-size: 1.55rem 1.55rem, 1.55rem 1.55rem, auto;
+}
+
+.stage-ruler {
+  position: absolute;
+  left: 0.92rem;
+  bottom: 0.8rem;
+  width: 0.42rem;
+  height: 5.95rem;
+  border-radius: 0.18rem;
+  border: 1px solid rgba(52, 123, 84, 0.35);
+  background: #fffdf8;
+}
+
+.stage-slider-card.is-large .stage-ruler {
+  left: 1.35rem;
+  bottom: 1rem;
+  width: 0.5rem;
+  height: 8.1rem;
+}
+
+.stage-ruler::before {
+  content: "";
+  position: absolute;
+  inset: 0.28rem 0.08rem;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(52, 123, 84, 0.58) 0 1px,
+    transparent 1px 0.46rem
+  );
+}
+
+.stage-pot {
+  position: absolute;
+  left: 50%;
+  bottom: 0.6rem;
+  width: 3.9rem;
+  height: 2.45rem;
+  transform: translateX(-50%);
+}
+
+.stage-pot::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(143, 102, 61, 0.42);
+  background: #fff7ee;
+}
+
+.stage-pot::after {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: 0;
+  height: 2.12rem;
+  clip-path: polygon(0 0, 100% 0, 82% 100%, 18% 100%);
+  border-radius: 0 0 0.6rem 0.6rem;
+  background: linear-gradient(180deg, #e2b88e, #bc875f);
+}
+
+.stage-stem {
+  position: absolute;
+  left: 50%;
+  bottom: 1.15rem;
+  width: 0.34rem;
+  height: 4.9rem;
+  border-radius: 999px;
+  background: linear-gradient(#75ad70, #3f815b);
+  transform: translateX(-50%) rotate(-2deg);
+  transition: height 220ms ease;
+}
+
+.stage-slider-card.is-large .stage-stem {
+  bottom: 1.3rem;
+  width: 0.42rem;
+  height: 6.9rem;
+}
+
+.stage-flower-visual.is-potted .stage-stem {
+  bottom: 2.35rem;
+  height: 3.2rem;
+}
+
+.stage-leaf {
+  position: absolute;
+  width: 2.25rem;
+  height: 1rem;
+  border-radius: 100% 0 100% 0;
+  background: rgba(126, 190, 130, 0.88);
+  transition: transform 220ms ease, opacity 220ms ease;
+}
+
+.stage-slider-card.is-large .stage-leaf {
+  width: 2.95rem;
+  height: 1.3rem;
+}
+
+.stage-leaf-left {
+  left: 2.4rem;
+  bottom: 3rem;
+  transform: rotate(-24deg);
+}
+
+.stage-slider-card.is-large .stage-leaf-left {
+  left: 3.45rem;
+  bottom: 4.2rem;
+}
+
+.stage-leaf-right {
+  right: 2.25rem;
+  bottom: 3.8rem;
+  transform: rotate(205deg);
+}
+
+.stage-slider-card.is-large .stage-leaf-right {
+  right: 3.2rem;
+  bottom: 5.2rem;
+}
+
+.stage-flower-head {
+  position: absolute;
+  left: 50%;
+  top: 2.05rem;
+  width: 3.7rem;
+  height: 3.7rem;
+  transform-origin: center;
+  transition: transform 240ms ease;
+}
+
+.stage-slider-card.is-large .stage-flower-head {
+  top: 2.55rem;
+  width: 4.95rem;
+  height: 4.95rem;
+}
+
+.stage-flower-visual.is-potted .stage-flower-head {
+  top: 2.2rem;
+}
+
+.stage-flower-head span {
+  position: absolute;
+  left: 1.42rem;
+  top: 0.28rem;
+  width: 0.85rem;
+  height: 1.72rem;
+  border-radius: 999px 999px 0.22rem 0.22rem;
+  background: var(--pink);
+  transform-origin: 0.42rem 1.5rem;
+  transition: transform 260ms cubic-bezier(0.2, 0.9, 0.25, 1.2), opacity 220ms ease;
+}
+
+.stage-slider-card.is-large .stage-flower-head span {
+  left: 1.95rem;
+  top: 0.3rem;
+  width: 1.05rem;
+  height: 2.35rem;
+  transform-origin: 0.52rem 2.12rem;
+}
+
+.stage-flower-head span:nth-child(2n) {
+  background: #f7beb1;
+}
+
+.stage-flower-core {
+  position: absolute;
+  left: 50%;
+  top: 2.05rem;
+  width: 0.92rem;
+  height: 0.92rem;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: #f0c66f;
+  box-shadow: 0 0 0 0.22rem rgba(255, 250, 242, 0.72);
+}
+
+.stage-slider-card.is-large .stage-flower-core {
+  top: 2.55rem;
+  width: 1.12rem;
+  height: 1.12rem;
+}
+
+.stage-flower-visual.is-potted .stage-flower-core {
+  top: 2.2rem;
+}
+
+.stage-flower-visual.is-wilted .stage-flower-head {
+  filter: saturate(0.68);
+}
+
+.stage-flower-visual.is-wilted .stage-stem,
+.stage-flower-visual.is-wilted .stage-leaf {
+  opacity: 0.68;
+}
+
+.stage-growth-pot {
+  position: absolute;
+  left: 50%;
+  bottom: 0.58rem;
+  width: 4rem;
+  height: 2.35rem;
+  transform: translateX(-50%);
+}
+
+.stage-growth-pot::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(143, 102, 61, 0.4);
+  background: #fff7ee;
+}
+
+.stage-growth-pot::after {
+  content: "";
+  position: absolute;
+  left: 0.52rem;
+  right: 0.52rem;
+  bottom: 0;
+  height: 2.05rem;
+  clip-path: polygon(0 0, 100% 0, 82% 100%, 18% 100%);
+  border-radius: 0 0 0.58rem 0.58rem;
+  background: linear-gradient(180deg, #e2b88e, #bc875f);
+}
+
+.stage-growth-stem {
+  position: absolute;
+  left: 50%;
+  bottom: 2.4rem;
+  width: 0.36rem;
+  height: var(--growth-height);
+  border-radius: 999px;
+  background: linear-gradient(#78b578, #3d7e59);
+  opacity: var(--growth-opacity);
+  transform: translateX(-50%) rotate(var(--growth-lean));
+  transform-origin: bottom center;
+  transition: height 260ms ease, transform 260ms ease, opacity 260ms ease;
+}
+
+.stage-growth-leaf {
+  position: absolute;
+  width: 2.28rem;
+  height: 1.08rem;
+  border-radius: 100% 0 100% 0;
+  background: rgba(92, 154, 95, 0.86);
+  opacity: var(--growth-opacity);
+  transition: transform 260ms ease, bottom 260ms ease, opacity 260ms ease;
+}
+
+.stage-growth-leaf.left.top {
+  left: 2.05rem;
+  bottom: calc(2.5rem + var(--growth-height) * 0.66);
+  transform: rotate(-24deg) scale(var(--growth-leaf-scale));
+}
+
+.stage-growth-leaf.left.bottom {
+  left: 1.8rem;
+  bottom: calc(2.2rem + var(--growth-height) * 0.35);
+  transform: rotate(-8deg) scale(calc(var(--growth-leaf-scale) * 0.95));
+}
+
+.stage-growth-leaf.right.top {
+  right: 2.05rem;
+  bottom: calc(2.5rem + var(--growth-height) * 0.66);
+  transform: rotate(204deg) scale(var(--growth-leaf-scale));
+}
+
+.stage-growth-leaf.right.bottom {
+  right: 1.8rem;
+  bottom: calc(2.2rem + var(--growth-height) * 0.35);
+  transform: rotate(188deg) scale(calc(var(--growth-leaf-scale) * 0.95));
+}
+
+.stage-growth-visual.is-concern .stage-growth-leaf,
+.stage-growth-visual.is-concern .stage-growth-stem {
+  filter: sepia(0.28) saturate(0.72);
+}
+
+@media (max-width: 640px) {
+  .stage-slider-card {
+    --stage-edge-pad: 2.65rem;
+    --stage-label-width: clamp(3.65rem, calc(100% / var(--stage-count) + 0.55rem), 5.1rem);
+  }
+
+  .stage-slider-card.is-large {
+    --stage-edge-pad: 2.85rem;
+    --stage-label-width: clamp(3.85rem, calc(100% / var(--stage-count) + 0.55rem), 5.25rem);
+  }
+
+  .stage-slider-card.is-potted-slider {
+    --stage-edge-pad: 2.45rem;
+    --stage-label-width: clamp(3.3rem, calc(100% / var(--stage-count) + 0.32rem), 4.7rem);
+  }
+
+  .stage-slider-visual-wrap,
+  .stage-slider-card.is-large .stage-slider-visual-wrap {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .stage-flower-visual,
+  .stage-growth-visual,
+  .stage-slider-card.is-large .stage-flower-visual {
+    width: 100%;
+  }
+
+  .stage-slider-card.is-large .stage-flower-visual {
+    height: 10.3rem;
+  }
+
+  .stage-slider-value,
+  .stage-slider-card.is-cut-slider .stage-slider-value {
+    font-size: 1.35rem;
+  }
+
+  .stage-slider-options button,
+  .stage-slider-card.is-cut-slider .stage-slider-options button,
+  .stage-slider-card.is-potted-slider .stage-slider-options button {
+    font-size: 0.62rem;
+    min-height: 2.05rem;
+    padding-inline: 0.28rem;
+  }
+}
+
