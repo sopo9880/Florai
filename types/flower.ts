@@ -68,7 +68,7 @@ export type FlowerAnalysisRequest = FlowerInfoForm & {
 };
 
 export type AnalysisCondition = "normal" | "abnormal";
-export type AnalysisGrade = "특" | "상" | "보통" | "비정상";
+export type AnalysisGrade = "특" | "상" | "보통" | "비정상" | "판정 보류";
 
 export type AnalysisImageFinding = {
   view: ImageViewType | string;

@@ -86,7 +86,7 @@ export async function GET(_request: Request, context: RouteContext) {
           error: {
             code: "INVALID_WORKER_RESULT",
             message:
-              "worker 결과를 화면용 분석 결과로 변환하지 못했습니다. Redis result JSON의 prediction/description 형식을 확인해 주세요.",
+              "worker 결과를 화면용 분석 결과로 변환하지 못했습니다. Redis result JSON 형식을 확인해 주세요.",
             detail: rawResult,
           },
         } satisfies AnalyzeStatusResponse;

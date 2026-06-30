@@ -31,6 +31,12 @@ const gradeStyles = {
     text: "text-[#a74848]",
     chip: "이상 부위 확인",
   },
+  "판정 보류": {
+    label: "판정 보류",
+    tone: "from-[#fff5d9] to-[#fff8f2]",
+    text: "text-[#9a6a19]",
+    chip: "재검토 필요",
+  },
 };
 
 export function GradeCard({ condition, grade, confidence }: GradeCardProps) {
@@ -41,7 +47,7 @@ export function GradeCard({ condition, grade, confidence }: GradeCardProps) {
       className={`rounded-lg bg-gradient-to-br ${style.tone} p-6 shadow-[var(--shadow)]`}
     >
       <p className="text-sm font-black text-[var(--muted)]">
-        {condition === "normal" ? "정상 판정 결과" : "이상 의심 결과"}
+        {grade === "판정 보류" ? "재검토 필요 결과" : condition === "normal" ? "정상 판정 결과" : "이상 의심 결과"}
       </p>
       <div className="mt-5 flex items-end justify-between gap-4">
         <div>

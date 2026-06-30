@@ -101,7 +101,7 @@ export function normalizeWorkerResult(raw: unknown): AnalysisResult | null {
   if (!unwrapped || typeof unwrapped !== "object") return null;
 
   const maybe = unwrapped as Record<string, unknown>;
-  if (typeof maybe.summary === "string" && Array.isArray(maybe.reasons)) {
+  if (isFlatWorkerAnalysisResult(maybe)) {
     return normalizeFlatAnalysisResult(maybe);
   }
 
@@ -191,7 +191,7 @@ export function normalizeWorkerResult(raw: unknown): AnalysisResult | null {
 
   return {
     condition: conditionLabel,
-    grade: conditionLabel === "abnormal" ? "비정상" : gradeCandidate,
+    grade: conditionLabel === "abnormal" && gradeCandidate !== "판정 보류" ? "비정상" : gradeCandidate,
     originalLabel: originalLabel || undefined,
     confidence: Math.round(confidence > 1 ? confidence : confidence * 100),
     summary,
@@ -205,21 +205,57 @@ export function normalizeWorkerResult(raw: unknown): AnalysisResult | null {
   };
 }
 
+function isFlatWorkerAnalysisResult(maybe: Record<string, unknown>) {
+  return (
+    typeof maybe.summary === "string" ||
+    typeof maybe.grade === "string" ||
+    typeof maybe.condition === "string" ||
+    Array.isArray(maybe.details) ||
+    Array.isArray(maybe.measurements)
+  );
+}
+
 function normalizeFlatAnalysisResult(maybe: Record<string, unknown>): AnalysisResult {
   const originalLabel = getOriginalLabel(maybe);
   const originalGrade = originalLabel ? normalizeGradeLabel(originalLabel) : null;
-  const currentGrade = normalizeGradeLabel(String(maybe.grade || "상"));
+  const currentGrade = normalizeGradeLabel(String(maybe.grade || maybe.gradeKo || "상"));
   const grade = originalGrade || currentGrade;
+  const rawCondition = String(maybe.condition || "").trim().toLowerCase();
+  const rawConditionKo = String(maybe.conditionKo || maybe.condition_ko || "").trim();
   const condition =
-    maybe.condition === "abnormal" || grade === "비정상" ? "abnormal" : "normal";
-  const confidence = Number(maybe.confidence || 80);
+    rawCondition === "abnormal" ||
+    rawCondition === "defect" ||
+    rawCondition === "review_required" ||
+    grade === "비정상" ||
+    grade === "판정 보류" ||
+    rawConditionKo.includes("중결점") ||
+    rawConditionKo.includes("의심")
+      ? "abnormal"
+      : "normal";
+  const confidence = Number(
+    maybe.confidence || maybe.classificationConfidence || maybe.evidenceConfidence || 80,
+  );
+  const reasons = uniqueStrings([
+    ...asStringArray(maybe.reasons),
+    ...normalizeFlatDetails(getArray(maybe.details)),
+  ]).slice(0, 12);
+  const warnings = asStringArray(maybe.warnings).slice(0, 8);
+  const recommendation = stringOrEmpty(maybe.recommendation) || "추가 검수를 권장합니다.";
+  const summary = stringOrEmpty(maybe.summary) || "분석이 완료되었습니다.";
+  const measurements = normalizeFlatMeasurements(maybe.measurements);
 
   return {
-    ...(maybe as AnalysisResult),
     condition,
-    grade: condition === "abnormal" ? "비정상" : grade,
-    originalLabel: originalLabel || (maybe as AnalysisResult).originalLabel,
+    grade: condition === "abnormal" && grade !== "판정 보류" ? "비정상" : grade,
+    originalLabel: originalLabel || undefined,
     confidence: Math.round(confidence > 1 ? confidence : confidence * 100),
+    summary,
+    reasons: reasons.length > 0 ? reasons : [summary],
+    warnings,
+    recommendation,
+    imageCount: Number(maybe.imageCount || 0) || undefined,
+    perImageFindings: normalizePerImageFindings(getArray(maybe.perImageFindings)),
+    measurements,
   };
 }
 
@@ -269,6 +305,16 @@ function getOriginalLabel(...records: Array<Record<string, unknown> | undefined>
 function normalizeGradeLabel(label: string): AnalysisGrade {
   const normalized = label.trim().toLowerCase();
   const compact = normalized.replace(/[\s_-]/g, "");
+
+  if (
+    ["reviewrequired", "review", "hold", "defer", "deferred", "pending", "undetermined"].includes(compact) ||
+    label.includes("판정 보류") ||
+    label.includes("판정보류") ||
+    label.includes("재검토") ||
+    label.includes("보류")
+  ) {
+    return "판정 보류";
+  }
 
   if (
     ["abnormal", "bad", "defect", "defective", "reject", "rejected", "fail", "ng"].includes(compact) ||
@@ -321,6 +367,39 @@ function normalizeDetailedAssessment(value: unknown[]) {
       return description;
     })
     .filter(Boolean);
+}
+
+function normalizeFlatDetails(value: unknown[]) {
+  return value
+    .map((item) => {
+      const record = getRecord(item);
+      if (!record) return "";
+      const title = stringOrEmpty(record.title);
+      const status = stringOrEmpty(record.status);
+      const description = stringOrEmpty(record.description);
+      if (!title && !description) return "";
+      if (title && status && description) return `${title} · ${status}: ${description}`;
+      if (title && description) return `${title}: ${description}`;
+      return description;
+    })
+    .filter(Boolean);
+}
+
+function normalizeFlatMeasurements(value: unknown) {
+  if (!Array.isArray(value)) return undefined;
+
+  const items = value
+    .map((item) => {
+      const record = getRecord(item);
+      if (!record) return null;
+      const label = stringOrEmpty(record.label);
+      const measurementValue = stringOrEmpty(record.value);
+      if (!label || !measurementValue) return null;
+      return { label, value: measurementValue };
+    })
+    .filter((item): item is { label: string; value: string } => Boolean(item));
+
+  return items.length > 0 ? items : undefined;
 }
 
 function normalizeGradeReasoning(value: Record<string, unknown> | undefined) {
