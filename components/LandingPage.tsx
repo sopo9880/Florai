@@ -8,8 +8,6 @@ const t = {
   start: "식물 정보 입력하기",
   marketplace: "데모 상품 목록 보기",
   heroAlt: "스마트폰으로 화훼 상태를 촬영하는 작업대",
-  reportReady: "Render 서버 연동 준비",
-  flow: "정보 입력 → 이미지 분석 → 근거 리포트 → 상품 게시",
   comingSoon:
     "지원 구조: 절화류/분화류 분기, 화분 호수 규격 매핑, 표준규격 RAG 근거 생성용 payload",
 };
@@ -56,19 +54,6 @@ export function LandingPage({ onStart, onViewListings }: LandingPageProps) {
             alt={t.heroAlt}
             className="aspect-[4/3] w-full object-cover"
           />
-          <div className="absolute bottom-4 left-4 right-4 rounded-lg bg-[rgba(255,255,255,0.88)] p-4 backdrop-blur">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-black">{t.reportReady}</p>
-                <p className="mt-1 text-xs font-semibold text-[var(--muted)]">
-                  {t.flow}
-                </p>
-              </div>
-              <div className="rounded-full bg-[var(--green)] px-3 py-2 text-sm font-black text-[var(--green-strong)]">
-                AI
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
